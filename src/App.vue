@@ -1,19 +1,39 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from '@/components/HelloWorld.vue'
+import { RouterLink, RouterView } from "vue-router";
+import { onMounted } from "vue";
+import DPlayer from "dplayer";
+
+let dp = null;
+
+onMounted(() => {
+  dp = new DPlayer({
+    container: document.getElementById("dplayer"),
+    screenshot: true,
+    video: {
+      url: "https://api.dogecloud.com/player/get.mp4?vcode=5ac682e6f8231991&userId=17&ext=.mp4",
+    },
+  });
+});
+
+function onPlay() {
+  dp.play();
+}
+function onPause() {
+  dp.pause();
+}
 </script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
     <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+      <div id="dplayer"></div>
 
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
       </nav>
+      <div @click="onPlay">play</div>
+      <div @click="onPause">pause</div>
     </div>
   </header>
 
@@ -21,7 +41,7 @@ import HelloWorld from '@/components/HelloWorld.vue'
 </template>
 
 <style>
-@import '@/assets/base.css';
+@import "@/assets/base.css";
 
 #app {
   max-width: 1280px;
@@ -33,12 +53,7 @@ import HelloWorld from '@/components/HelloWorld.vue'
 
 header {
   line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+  /* max-height: 100vh; */
 }
 
 a,
@@ -87,7 +102,7 @@ nav a:first-of-type {
 
   #app {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 3fr 1fr;
     padding: 0 2rem;
   }
 
@@ -101,10 +116,6 @@ nav a:first-of-type {
     display: flex;
     place-items: flex-start;
     flex-wrap: wrap;
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
   }
 
   nav {
