@@ -6,5 +6,8 @@ all: server client
 server:
 	$(MAKE) -C server
 
-client:
+setup:
+	npm install
+
+client: setup
 	npm run build
