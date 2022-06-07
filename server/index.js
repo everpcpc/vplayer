@@ -5,7 +5,7 @@ const port = 2233;
 
 
 io.on('connection', (socket) => {
-    console.log('net connection');
+    console.log('new connection');
 
     socket.on('disconnect', function () {
         console.log('disconnect');
