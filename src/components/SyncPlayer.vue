@@ -11,6 +11,13 @@ import { onMounted } from "vue";
 import DPlayer from "dplayer";
 import { io } from "socket.io-client";
 
+let ignoreEvents = {
+  seek: 0,
+  play: 0,
+  pause: 0,
+  ratechange: 0,
+};
+
 function randomString(length) {
   let str = "";
   for (let i = 0; i < length; i++) {
@@ -26,14 +33,19 @@ function resultHandler(player, event) {
   }
   switch (event.action) {
     case "play":
+      ignoreEvents.seek++;
       player.seek(event.time + 0.2); // +0.2s for network delay
+      ignoreEvents.play++;
       player.play();
       break;
     case "pause":
+      ignoreEvents.seek++;
       player.seek(event.time);
+      ignoreEvents.pause++;
       player.pause();
       break;
     case "seek":
+      ignoreEvents.seek++;
       player.seek(event.time);
       break;
   }
@@ -81,18 +93,34 @@ onMounted(() => {
   });
 
   dp.on("play", function () {
+    if (ignoreEvents.play) {
+      ignoreEvents.play--;
+      return;
+    }
     sendControl(dp, socket, "play");
   });
   dp.on("pause", function () {
+    if (ignoreEvents.pause) {
+      ignoreEvents.pause--;
+      return;
+    }
     sendControl(dp, socket, "pause");
   });
   // dp.on("progress", function (event) {
   //   console.log("progress", event);
   // });
   dp.on("seeked", function () {
+    if (ignoreEvents.seek) {
+      ignoreEvents.seek--;
+      return;
+    }
     sendControl(dp, socket, "seek");
   });
   dp.on("ratechange", function () {
+    if (ignoreEvents.ratechange) {
+      ignoreEvents.ratechange--;
+      return;
+    }
     console.log("ratechange");
   });
 });
