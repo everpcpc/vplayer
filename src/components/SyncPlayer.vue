@@ -21,9 +21,9 @@ let ignoreEvents = {
 function randomString(length) {
   let str = "";
   for (let i = 0; i < length; i++) {
-    str += Math.random().toString(36).substr(2);
+    str += Math.random().toString(36).substring(2);
   }
-  return str.substr(0, length);
+  return str.substring(0, length);
 }
 
 function resultHandler(player, event) {
@@ -48,6 +48,17 @@ function resultHandler(player, event) {
       ignoreEvents.seek++;
       player.seek(event.time);
       break;
+    case "sync":
+      if (event.paused) {
+        ignoreEvents.pause++;
+        player.pause();
+      } else {
+        ignoreEvents.play++;
+        player.play();
+      }
+      ignoreEvents.seek++;
+      player.seek(event.time);
+      break;
   }
 }
 
@@ -61,14 +72,18 @@ function sendControl(player, socket, action) {
       action: action,
       time: player.video.currentTime,
       src: player.video.currentSrc,
+      paused: player.video.paused,
     })
   );
 }
 
 onMounted(() => {
+  const socket = io("https://player.everpcpc.com");
+
   const dp = new DPlayer({
     container: document.getElementById("dplayer"),
     screenshot: true,
+    volume: 0.1,
     video: {
       url: "https://api.dogecloud.com/player/get.mp4?vcode=5ac682e6f8231991&userId=17&ext=.mp4",
     },
@@ -76,15 +91,13 @@ onMounted(() => {
       {
         text: "Sync",
         click: (player) => {
-          console.log(player.video.currentTime);
-          console.log(player.video.currentSrc);
+          sendControl(player, socket, "sync");
           player.notice("synced", 2000, 0.8);
         },
       },
     ],
   });
 
-  const socket = io("https://player.everpcpc.com");
   socket.on("video-control", (res) => {
     const result = JSON.parse(res);
     if (result.user !== userID) {
@@ -93,14 +106,14 @@ onMounted(() => {
   });
 
   dp.on("play", function () {
-    if (ignoreEvents.play) {
+    if (ignoreEvents.play > 0) {
       ignoreEvents.play--;
       return;
     }
     sendControl(dp, socket, "play");
   });
   dp.on("pause", function () {
-    if (ignoreEvents.pause) {
+    if (ignoreEvents.pause > 0) {
       ignoreEvents.pause--;
       return;
     }
@@ -110,14 +123,14 @@ onMounted(() => {
   //   console.log("progress", event);
   // });
   dp.on("seeked", function () {
-    if (ignoreEvents.seek) {
+    if (ignoreEvents.seek > 0) {
       ignoreEvents.seek--;
       return;
     }
     sendControl(dp, socket, "seek");
   });
   dp.on("ratechange", function () {
-    if (ignoreEvents.ratechange) {
+    if (ignoreEvents.ratechange > 0) {
       ignoreEvents.ratechange--;
       return;
     }
