@@ -78,7 +78,7 @@ function sendControl(player, socket, action) {
 }
 
 onMounted(() => {
-  const socket = io("https://player.everpcpc.com");
+  const socket = io();
 
   const dp = new DPlayer({
     container: document.getElementById("dplayer"),
