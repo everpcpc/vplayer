@@ -2,6 +2,10 @@
   <v-container>
     <v-card>
       <div id="dplayer"></div>
+      <v-card-actions>
+        <v-btn class="primary" @click="browse">browse</v-btn>
+      </v-card-actions>
+      <v-card-text> </v-card-text>
     </v-card>
   </v-container>
 </template>
@@ -18,12 +22,21 @@ let ignoreEvents = {
   ratechange: 0,
 };
 
+let socket = null;
+let playlist = [];
+
 function randomString(length) {
   let str = "";
   for (let i = 0; i < length; i++) {
     str += Math.random().toString(36).substring(2);
   }
   return str.substring(0, length);
+}
+
+function browse() {
+  socket.emit("browse", (res) => {
+    console.log(res);
+  });
 }
 
 function resultHandler(player, event) {
@@ -78,12 +91,15 @@ function sendControl(player, socket, action) {
 }
 
 onMounted(() => {
-  const socket = io();
+  socket = io();
 
   const dp = new DPlayer({
     container: document.getElementById("dplayer"),
     screenshot: true,
     volume: 0,
+    video: {
+      type: "auto",
+    },
     contextmenu: [
       {
         text: "Sync",

@@ -14,8 +14,10 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      target: 'ws://localhost:2233',
-      ws: true,
+      '/socket.io': {
+        target: 'ws://localhost:2233',
+        ws: true,
+      },
     },
   },
   resolve: {

@@ -1,6 +1,5 @@
 const server = require('http').Server();
 const fs = require("fs")
-const path = require("path")
 
 const io = require('socket.io')(server);
 const yargs = require('yargs');
@@ -21,17 +20,18 @@ const argv = yargs
     .help().alias('help', 'h')
     .argv;
 
-function getAllFiles(dirPath, arrayOfFiles) {
-    files = fs.readdirSync(dirPath)
-    arrayOfFiles = arrayOfFiles || []
+function getFileTree(dirPath) {
+    let files = fs.readdirSync(dirPath)
+    let tree = []
     files.forEach(function (file) {
         if (fs.statSync(dirPath + "/" + file).isDirectory()) {
-            arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles)
-        } else {
-            arrayOfFiles.push(path.join(__dirname, dirPath, "/", file))
+            let childen = getFileTree(dirPath + "/" + file)
+            tree.push({ name: file, children: childen })
+        } else if (file.endsWith(".mp4")) {
+            tree.push({ name: file, file: "mp4" })
         }
     })
-    return arrayOfFiles
+    return tree
 }
 
 io.on('connection', (socket) => {
@@ -48,8 +48,8 @@ io.on('connection', (socket) => {
 
     socket.on('browse', (callback) => {
         console.log('received: browse');
-        const files = getAllFiles(argv.data)
-        callback(files);
+        const tree = getFileTree(argv.data)
+        callback(JSON.stringify(tree));
     });
 
 });
