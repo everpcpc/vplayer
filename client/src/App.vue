@@ -1,18 +1,23 @@
 <template>
   <v-app>
     <v-main>
-      <router-view/>
+      <SyncPlayer />
     </v-main>
   </v-app>
 </template>
 
 <script>
+import SyncPlayer from "./components/SyncPlayer";
 
 export default {
-  name: 'App',
+  name: "App",
+
+  components: {
+    SyncPlayer,
+  },
 
   data: () => ({
     //
   }),
-}
+};
 </script>

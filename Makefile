@@ -2,12 +2,15 @@ all: server client
 
 .PHONY: server client
 
-
 server:
 	$(MAKE) -C server
 
-setup:
-	npm install
+client:
+	$(MAKE) -C client
 
-client: setup
-	npm run build
+
+run_server:
+	$(MAKE) -C server dev
+
+run_client:
+	$(MAKE) -C client dev

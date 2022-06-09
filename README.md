@@ -10,11 +10,6 @@ make
 ## dev
 
 ```sh
-npm run dev
-```
-
-## lint
-
-```sh
-npm run lint
+make run_server
+make run_client
 ```
