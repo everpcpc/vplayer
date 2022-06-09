@@ -28,7 +28,7 @@ function getFileTree(dirPath) {
             let childen = getFileTree(dirPath + "/" + file)
             tree.push({ name: file, children: childen })
         } else if (file.endsWith(".mp4")) {
-            tree.push({ name: file, file: "mp4" })
+            tree.push({ name: file })
         }
     })
     return tree
@@ -41,9 +41,9 @@ io.on('connection', (socket) => {
         console.log('disconnect');
     });
 
-    socket.on('video-control', (params) => {
+    socket.on('video', (params) => {
         console.log('received:' + params);
-        io.emit('video-control', params);
+        io.emit('video', params);
     });
 
     socket.on('browse', (callback) => {

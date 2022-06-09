@@ -1,43 +1,65 @@
 <template>
   <v-container>
+    <v-dialog
+      v-model="dialog"
+      fullscreen
+      hide-overlay
+      transition="dialog-bottom-transition"
+    >
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-btn icon dark @click="refreshFiles">
+            <v-icon>mdi-sync</v-icon>
+          </v-btn>
+          <v-text-field
+            v-model="search"
+            label="Search Video"
+            dark
+            flat
+            solo-inverted
+            hide-details
+            clearable
+            clear-icon="mdi-close-circle-outline"
+          ></v-text-field>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click="dialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+
+        <v-card-text align="center" v-if="isLoading">
+          <v-progress-circular
+            :size="50"
+            color="primary"
+            indeterminate
+          ></v-progress-circular>
+        </v-card-text>
+        <v-card-text v-else>
+          <v-treeview
+            v-model="tree"
+            :items="files"
+            selected-color="indigo"
+            open-on-click
+            dense
+            :search="search"
+            :filter="filter"
+          >
+            <template v-slot:prepend="{ item, open }">
+              <v-icon v-if="item.children != null">
+                {{ open ? "mdi-folder-open" : "mdi-folder" }}
+              </v-icon>
+              <v-icon v-else @click="playVideo(item)">
+                mdi-video-outline
+              </v-icon>
+            </template>
+          </v-treeview>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <v-card>
       <div id="dplayer"></div>
       <v-card-actions>
-        <v-dialog
-          v-model="dialog"
-          fullscreen
-          hide-overlay
-          transition="dialog-bottom-transition"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn color="primary" dark v-bind="attrs" v-on="on">
-              browse
-            </v-btn>
-          </template>
-
-          <v-card>
-            <v-toolbar dark color="primary">
-              <v-toolbar-title>Browse Videos</v-toolbar-title>
-              <v-spacer></v-spacer>
-              <v-btn icon dark @click="dialog = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-toolbar>
-
-            <v-card-text>
-              <v-treeview :items="files" :search="search">
-                <template v-slot:prepend="{ item }">
-                  <v-icon
-                    v-if="item.children"
-                    v-text="
-                      `mdi-${item.id === 1 ? 'home-variant' : 'folder-network'}`
-                    "
-                  ></v-icon>
-                </template>
-              </v-treeview>
-            </v-card-text>
-          </v-card>
-        </v-dialog>
+        <v-btn color="primary" dark @click="browse"> browse </v-btn>
       </v-card-actions>
       <v-card-text> </v-card-text>
     </v-card>
@@ -62,9 +84,11 @@ export default {
         ratechange: 0,
       },
       dialog: false,
+      isLoading: false,
+      videos: [],
+      tree: [],
       files: [],
       search: "",
-      filter: "",
     };
   },
 
@@ -77,10 +101,21 @@ export default {
       return str.substring(0, length);
     },
 
+    browse() {
+      if (this.files.length === 0) {
+        this.isLoading = true;
+        this.refreshFiles();
+      }
+      this.dialog = true;
+    },
     refreshFiles() {
       this.socket.emit("browse", (res) => {
         this.files = JSON.parse(res);
+        this.isLoading = false;
       });
+    },
+    playVideo(item) {
+      console.log(item);
     },
 
     resultHandler(event) {
@@ -120,7 +155,7 @@ export default {
     },
     sendControl(action) {
       this.socket.emit(
-        "video-control",
+        "video",
         JSON.stringify({
           user: this.userID,
           action: action,
@@ -153,7 +188,7 @@ export default {
       ],
     });
 
-    this.socket.on("video-control", (res) => {
+    this.socket.on("video", (res) => {
       const result = JSON.parse(res);
       if (result.user !== this.userID) {
         this.resultHandler(this.dp, result);
@@ -191,6 +226,12 @@ export default {
       }
       console.log("ratechange");
     });
+  },
+
+  computed: {
+    filter() {
+      return (item, search, name) => item[name].indexOf(search) > -1;
+    },
   },
 };
 </script>
