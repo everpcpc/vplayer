@@ -83,10 +83,7 @@ onMounted(() => {
   const dp = new DPlayer({
     container: document.getElementById("dplayer"),
     screenshot: true,
-    volume: 0.1,
-    video: {
-      url: "https://api.dogecloud.com/player/get.mp4?vcode=5ac682e6f8231991&userId=17&ext=.mp4",
-    },
+    volume: 0,
     contextmenu: [
       {
         text: "Sync",
