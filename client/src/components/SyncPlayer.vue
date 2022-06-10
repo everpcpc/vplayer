@@ -56,7 +56,10 @@
                 {{ open ? "mdi-folder-open" : "mdi-folder" }}
               </v-icon>
               <v-hover v-else v-slot="{ hover }">
-                <v-icon @click="hover ? playVideo(item) : undefined">
+                <v-icon
+                  color="success"
+                  @click="hover ? playVideo(item) : undefined"
+                >
                   {{ hover ? "mdi-play-circle-outline" : "mdi-video" }}
                 </v-icon>
               </v-hover>
