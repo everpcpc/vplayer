@@ -54,9 +54,11 @@
               <v-icon v-if="item.children != null">
                 {{ open ? "mdi-folder-open" : "mdi-folder" }}
               </v-icon>
-              <v-icon v-else @click="playVideo(item)">
-                mdi-video-outline
-              </v-icon>
+              <v-hover v-else v-slot="{ hover }">
+                <v-icon @click="hover ? playVideo(item) : undefined">
+                  {{ hover ? "mdi-play-circle" : "mdi-video" }}
+                </v-icon>
+              </v-hover>
             </template>
           </v-treeview>
         </v-card-text>
@@ -91,8 +93,6 @@ export default {
       },
       dialog: false,
       isLoading: false,
-      videos: [],
-      tree: [],
       files: [],
       search: "",
       expanded: false,
@@ -135,6 +135,7 @@ export default {
       }
     },
     playVideo(item) {
+      this.dialog = false;
       console.log(item);
     },
 
