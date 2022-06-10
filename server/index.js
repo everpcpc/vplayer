@@ -43,7 +43,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('video', (params) => {
-        console.log('received:' + params);
+        console.log('received: video ' + params);
         io.emit('video', params);
     });
 
