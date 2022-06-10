@@ -11,6 +11,12 @@
           <v-btn icon dark @click="refreshFiles">
             <v-icon>mdi-sync</v-icon>
           </v-btn>
+          <v-btn icon dark @click="toggleTreeview">
+            <v-icon>{{
+              expanded ? "mdi-arrow-collapse-all" : "mdi-arrow-expand-all"
+            }}</v-icon>
+          </v-btn>
+          <v-spacer></v-spacer>
           <v-text-field
             v-model="search"
             label="Search Video"
@@ -20,6 +26,7 @@
             hide-details
             clearable
             clear-icon="mdi-close-circle-outline"
+            @input="searchTreeview"
           ></v-text-field>
           <v-spacer></v-spacer>
           <v-btn icon dark @click="dialog = false">
@@ -36,13 +43,12 @@
         </v-card-text>
         <v-card-text v-else>
           <v-treeview
-            v-model="tree"
-            :items="files"
-            selected-color="indigo"
-            open-on-click
             dense
+            ref="browseTree"
+            :items="files"
+            :open-all="expanded"
+            item-key="name"
             :search="search"
-            :filter="filter"
           >
             <template v-slot:prepend="{ item, open }">
               <v-icon v-if="item.children != null">
@@ -89,6 +95,7 @@ export default {
       tree: [],
       files: [],
       search: "",
+      expanded: false,
     };
   },
 
@@ -113,6 +120,19 @@ export default {
         this.files = JSON.parse(res);
         this.isLoading = false;
       });
+    },
+    toggleTreeview() {
+      this.expanded = !this.expanded;
+      this.$refs.browseTree.updateAll(this.expanded);
+    },
+    searchTreeview() {
+      if (this.search === "" && this.expanded) {
+        this.expanded = false;
+        this.$refs.browseTree.updateAll(this.expanded);
+      } else if (this.search !== "" && !this.expanded) {
+        this.expanded = true;
+        this.$refs.browseTree.updateAll(this.expanded);
+      }
     },
     playVideo(item) {
       console.log(item);
@@ -226,12 +246,6 @@ export default {
       }
       console.log("ratechange");
     });
-  },
-
-  computed: {
-    filter() {
-      return (item, search, name) => item[name].indexOf(search) > -1;
-    },
   },
 };
 </script>
