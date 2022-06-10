@@ -44,6 +44,7 @@
         <v-card-text v-else>
           <v-treeview
             dense
+            open-on-click
             ref="browseTree"
             :items="files"
             :open-all="expanded"
