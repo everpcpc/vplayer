@@ -68,8 +68,11 @@
       <div id="dplayer"></div>
       <v-card-actions>
         <v-btn color="primary" dark @click="browse"> browse </v-btn>
+        <v-chip color="grey" class="mx-2" label outlined>
+          <v-icon left> mdi-play-circle </v-icon>
+          {{ currentVideo }}
+        </v-chip>
       </v-card-actions>
-      <v-card-text> </v-card-text>
     </v-card>
   </v-container>
 </template>
@@ -84,6 +87,7 @@ export default {
       userID: "",
       socket: null,
       dp: null,
+      currentVideo: "",
       playlist: [],
       ignoreEvents: {
         seek: 0,
@@ -136,12 +140,20 @@ export default {
     },
     playVideo(item) {
       this.dialog = false;
-      console.log(item);
+      let videoURL = "";
+      if (item.path) {
+        videoURL = `/movie/${item.path}/${item.name}`;
+      } else {
+        videoURL = `/movie/${item.name}`;
+      }
+      this.dp.switchVideo({ url: videoURL });
+      this.currentVideo = videoURL.substring(videoURL.lastIndexOf("/") + 1);
     },
 
     resultHandler(event) {
       if (event.src !== this.dp.video.currentSrc) {
         this.dp.switchVideo({ url: event.src });
+        this.currentVideo = event.src.substring(event.src.lastIndexOf("/") + 1);
         this.dp.notice(`switched to ${event.src}`, 2000, 0.8);
       }
       switch (event.action) {
