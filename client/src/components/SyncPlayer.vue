@@ -56,7 +56,7 @@
               </v-icon>
               <v-hover v-else v-slot="{ hover }">
                 <v-icon @click="hover ? playVideo(item) : undefined">
-                  {{ hover ? "mdi-play-circle" : "mdi-video" }}
+                  {{ hover ? "mdi-play-circle-outline" : "mdi-video" }}
                 </v-icon>
               </v-hover>
             </template>
