@@ -148,15 +148,20 @@ export default {
         videoURL = `/movie/${item.name}`;
       }
       this.dp.switchVideo({ url: videoURL });
-      this.currentVideo = videoURL.substring(videoURL.lastIndexOf("/") + 1);
+      this.dp.seek(0);
+      this.currentVideo = decodeURI(
+        videoURL.substring(videoURL.lastIndexOf("/") + 1)
+      );
     },
 
     resultHandler(event) {
       const videoURL = event.src;
       if (videoURL !== this.dp.video.currentSrc) {
         this.dp.switchVideo({ url: videoURL });
-        this.currentVideo = videoURL.substring(videoURL.lastIndexOf("/") + 1);
         this.dp.notice(`switched to ${videoURL}`, 2000, 0.8);
+        this.currentVideo = decodeURI(
+          videoURL.substring(videoURL.lastIndexOf("/") + 1)
+        );
       }
       switch (event.action) {
         case "play":
