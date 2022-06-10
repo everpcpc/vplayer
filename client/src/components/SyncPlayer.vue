@@ -148,14 +148,14 @@ export default {
         videoURL = `/movie/${item.name}`;
       }
       this.dp.switchVideo({ url: videoURL });
-      // this.currentVideo = videoURL.substring(videoURL.lastIndexOf("/") + 1);
+      this.currentVideo = videoURL.substring(videoURL.lastIndexOf("/") + 1);
     },
 
     resultHandler(event) {
       const videoURL = event.src;
       if (videoURL !== this.dp.video.currentSrc) {
         this.dp.switchVideo({ url: videoURL });
-        // this.currentVideo = videoURL.substring(videoURL.lastIndexOf("/") + 1);
+        this.currentVideo = videoURL.substring(videoURL.lastIndexOf("/") + 1);
         this.dp.notice(`switched to ${videoURL}`, 2000, 0.8);
       }
       switch (event.action) {
@@ -226,7 +226,7 @@ export default {
     this.socket.on("video", (res) => {
       const result = JSON.parse(res);
       if (result.user !== this.userID) {
-        this.resultHandler(this.dp, result);
+        this.resultHandler(result);
       }
     });
 
