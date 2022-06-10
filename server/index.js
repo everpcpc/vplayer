@@ -27,7 +27,9 @@ function getFileTree(base, dirPath = "") {
     files.forEach(function (file) {
         if (fs.statSync(path.join(base, dirPath, file)).isDirectory()) {
             let childen = getFileTree(base, path.join(dirPath, file));
-            tree.push({ name: file, children: childen });
+            if (length(childen) > 0) {
+                tree.push({ name: file, children: childen });
+            }
         } else if (file.endsWith(".mp4")) {
             tree.push({ name: file, path: dirPath });
         }
