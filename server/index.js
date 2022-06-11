@@ -52,7 +52,7 @@ io.on('connection', (socket) => {
 
     socket.emit("status", JSON.stringify({ video: video, clients: clients }));
 
-    socket.on('disconnect', function () {
+    socket.on('disconnect', () => {
         console.log(`disconnect: ${uid}(${username})`);
         io.emit("left", uid);
         clients = clients.filter((e) => e.user !== uid)
@@ -60,7 +60,7 @@ io.on('connection', (socket) => {
 
     socket.on('video', (params) => {
         const event = JSON.parse(params);
-        event.paused = event.paused;
+        video.paused = event.paused;
         if (event.src) {
             video.src = event.src;
         }

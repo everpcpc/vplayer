@@ -54,14 +54,14 @@
               </v-btn>
             </v-toolbar>
 
-            <v-card-text align="center" v-if="isLoading">
+            <v-card-text class="my-2" align="center" v-if="isLoading">
               <v-progress-circular
                 :size="50"
                 color="primary"
                 indeterminate
               ></v-progress-circular>
             </v-card-text>
-            <v-card-text v-else>
+            <v-card-text class="my-2" v-else>
               <v-treeview
                 dense
                 open-on-click
@@ -88,9 +88,42 @@
             </v-card-text>
           </v-card>
         </v-dialog>
+
+        <v-dialog v-model="playDialog" hide-overlay max-width="640px">
+          <v-card>
+            <v-toolbar dark color="primary">
+              <v-toolbar-title>Play Video with URL</v-toolbar-title>
+              <v-spacer></v-spacer>
+              <v-btn icon dark @click="playDialog = false">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </v-toolbar>
+            <v-card-text class="my-2">
+              <v-text-field
+                v-model="videoURL"
+                label="Video URL"
+                :rules="[() => !!videoURL || 'url is required']"
+                solo
+              ></v-text-field>
+            </v-card-text>
+            <v-card-actions class="justify-center">
+              <v-btn
+                color="primary"
+                :disabled="!videoURL"
+                @click="playURL(videoURL)"
+              >
+                play
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
         <v-card tile>
           <div id="dplayer"></div>
           <v-card-actions>
+            <v-btn icon color="primary" dark @click="playDialog = true">
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
             <v-btn color="primary" dark @click="browse"> browse </v-btn>
             <v-chip color="grey" class="mx-2" label outlined>
               <v-icon left> mdi-play-circle </v-icon>
@@ -126,6 +159,8 @@ export default {
         pause: 0,
         ratechange: 0,
       },
+      playDialog: false,
+      videoURL: "",
       browseDialog: false,
       isLoading: false,
       files: [],
@@ -222,18 +257,19 @@ export default {
         this.clients = status.clients;
         if (status.video.src) {
           const video = status.video;
-          this.checkPlayURL(video.src);
-          if (video.paused) {
-            this.ignoreEvents.pause++;
-            this.dp.pause();
-          } else {
+          this.checkSwitchVideo(video.src);
+          if (!video.paused) {
             this.ignoreEvents.play++;
             this.dp.play();
           }
-          this.ignoreEvents.seek++;
-          this.dp.seek(video.time);
-          this.ignoreEvents.ratechange++;
-          this.dp.speed(video.speed);
+          if (video.time) {
+            this.ignoreEvents.seek++;
+            this.dp.seek(video.time);
+          }
+          if (video.speed) {
+            this.ignoreEvents.ratechange++;
+            this.dp.speed(video.speed);
+          }
         }
       });
       this.socket.on("join", (user, name) => {
@@ -278,18 +314,19 @@ export default {
     },
     playVideo(item) {
       this.browseDialog = false;
-      const videoURL = path.join("/movie", item.path, item.name);
-      this.playURL(videoURL);
+      const url = path.join("/movie", item.path, item.name);
+      this.playURL(url);
     },
 
     playURL(url) {
-      this.checkPlayURL(url);
+      this.playDialog = false;
+      this.checkSwitchVideo(url);
       this.$nextTick(() => {
         this.dp.seek(0);
         this.dp.play();
       });
     },
-    checkPlayURL(url) {
+    checkSwitchVideo(url) {
       if (url && url !== this.dp.video.currentSrc) {
         this.dp.switchVideo({ url: url });
         this.dp.notice(`switched to ${url}`, 2000, 0.8);
@@ -304,7 +341,7 @@ export default {
 
     videoHandler(event) {
       this.updateClient(event);
-      this.checkPlayURL(event.src);
+      this.checkSwitchVideo(event.src);
       switch (event.action) {
         case "play":
           this.ignoreEvents.seek++;
@@ -325,6 +362,8 @@ export default {
         case "ratechange":
           this.ignoreEvents.ratechange++;
           this.dp.speed(event.speed);
+          break;
+        case "progress":
           break;
         case "sync":
           if (event.paused) {
@@ -347,6 +386,7 @@ export default {
         "video",
         JSON.stringify({
           user: this.uid,
+          name: this.username,
           action: action,
           speed: this.dp.playbackSpeed,
           time: this.dp.video.currentTime,
