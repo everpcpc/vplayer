@@ -84,6 +84,7 @@
 <script>
 import DPlayer from "dplayer";
 import { io } from "socket.io-client";
+const path = require("path");
 
 export default {
   data() {
@@ -144,12 +145,7 @@ export default {
     },
     playVideo(item) {
       this.dialog = false;
-      let videoURL = "";
-      if (item.path) {
-        videoURL = `/movie/${item.path}/${item.name}`;
-      } else {
-        videoURL = `/movie/${item.name}`;
-      }
+      const videoURL = path.join("/movie", item.path, item.name);
       this.dp.switchVideo({ url: videoURL });
       this.currentVideo = decodeURI(
         videoURL.substring(videoURL.lastIndexOf("/") + 1)
