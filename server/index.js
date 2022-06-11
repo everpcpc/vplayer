@@ -37,7 +37,7 @@ function getFileTree(base, dirPath = "") {
     return tree
 }
 
-var clients = {};
+var clients = [];
 var video = {};
 // var playlist = [];
 // var history = [];
@@ -45,17 +45,17 @@ var video = {};
 io.on('connection', (socket) => {
     const username = socket.handshake.query.username;
     const uid = socket.handshake.query.uid;
-    clients[uid] = { name: username };
-
     console.log(`connect: ${uid}(${username})`);
 
-    socket.emit("status", JSON.stringify({ video: video, clients: clients }));
     io.emit("join", uid, username);
+    clients.push({ user: uid, name: username });
+
+    socket.emit("status", JSON.stringify({ video: video, clients: clients }));
 
     socket.on('disconnect', function () {
         console.log(`disconnect: ${uid}(${username})`);
-        delete clients[uid];
         io.emit("left", uid);
+        clients = clients.filter((e) => e.user !== uid)
     });
 
     socket.on('video', (params) => {

@@ -97,6 +97,7 @@
               {{ currentVideo }}
             </v-chip>
           </v-card-actions>
+          <v-card-text> {{ clients }} </v-card-text>
         </v-card>
       </v-col>
     </v-row>
@@ -118,7 +119,7 @@ export default {
       dp: null,
       currentVideo: "",
       playlist: [],
-      clients: {},
+      clients: [],
       ignoreEvents: {
         seek: 0,
         play: 0,
@@ -235,14 +236,14 @@ export default {
           this.dp.speed(video.speed);
         }
       });
-      this.socket.on("join", (id, name) => {
-        if (id !== this.uid) {
-          this.clients[id] = { name: name };
+      this.socket.on("join", (user, name) => {
+        if (user !== this.uid) {
+          this.clients.push({ user: user, name: name });
         }
       });
-      this.socket.on("left", (id) => {
-        if (id !== this.uid) {
-          delete this.clients[id];
+      this.socket.on("left", (user) => {
+        if (user !== this.uid) {
+          this.clients = this.clients.filter((e) => e.user !== user);
           this.ignoreEvents.pause++;
           this.dp.pause();
         }
@@ -296,7 +297,13 @@ export default {
       }
     },
 
+    updateClient(event) {
+      this.clients = this.clients.filter((e) => e.user !== event.user);
+      this.clients.push(event);
+    },
+
     videoHandler(event) {
+      this.updateClient(event);
       this.checkPlayURL(event.src);
       switch (event.action) {
         case "play":
