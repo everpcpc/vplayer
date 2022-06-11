@@ -151,11 +151,13 @@ export default {
         videoURL = `/movie/${item.name}`;
       }
       this.dp.switchVideo({ url: videoURL });
-      this.dp.seek(0);
-      this.dp.play();
       this.currentVideo = decodeURI(
         videoURL.substring(videoURL.lastIndexOf("/") + 1)
       );
+      this.$nextTick(() => {
+        this.dp.seek(0);
+        this.dp.play();
+      });
     },
 
     videoHandler(event) {
