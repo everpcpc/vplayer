@@ -1,9 +1,27 @@
 <template>
   <v-container>
     <v-row align="center" justify="center">
-      <v-col cols="12" v-if="showPlayer">
+      <v-col cols="12" lg="6" md="6" v-if="!showPlayer">
+        <v-card>
+          <v-card-text>
+            <v-text-field
+              v-model="username"
+              label="username"
+              :rules="[() => !!username || 'username is required']"
+              solo
+            ></v-text-field>
+          </v-card-text>
+          <v-card-actions class="justify-center">
+            <v-btn color="primary" :disabled="!username" @click="startPlaying">
+              join
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" v-else>
         <v-dialog
-          v-model="dialog"
+          v-model="browseDialog"
           fullscreen
           hide-overlay
           transition="dialog-bottom-transition"
@@ -31,7 +49,7 @@
                 @input="searchTreeview"
               ></v-text-field>
               <v-spacer></v-spacer>
-              <v-btn icon dark @click="dialog = false">
+              <v-btn icon dark @click="browseDialog = false">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-toolbar>
@@ -81,24 +99,6 @@
           </v-card-actions>
         </v-card>
       </v-col>
-
-      <v-col cols="12" lg="6" md="6" v-else>
-        <v-card>
-          <v-card-text>
-            <v-text-field
-              v-model="username"
-              label="username"
-              :rules="[() => !!username || 'username is required']"
-              solo
-            ></v-text-field>
-          </v-card-text>
-          <v-card-actions class="justify-center">
-            <v-btn color="primary" :disabled="!username" @click="startPlaying">
-              join
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -124,7 +124,7 @@ export default {
         pause: 0,
         ratechange: 0,
       },
-      dialog: false,
+      browseDialog: false,
       isLoading: false,
       files: [],
       search: "",
@@ -244,7 +244,7 @@ export default {
       }
     },
     playVideo(item) {
-      this.dialog = false;
+      this.browseDialog = false;
       const videoURL = path.join("/movie", item.path, item.name);
       this.dp.switchVideo({ url: videoURL });
       this.currentVideo = decodeURI(
