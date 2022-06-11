@@ -49,12 +49,13 @@ io.on('connection', (socket) => {
 
     console.log(`connect: ${uid}(${username})`);
 
+    socket.emit("status", JSON.stringify({ video: video, clients: clients }));
+    io.emit("join", uid, username);
+
     socket.on('disconnect', function () {
         console.log(`disconnect: ${uid}(${username})`);
         delete clients[uid];
-        io.emit('video', JSON.stringify({
-            action: 'stop',
-        }));
+        io.emit("left", uid);
     });
 
     socket.on('video', (params) => {

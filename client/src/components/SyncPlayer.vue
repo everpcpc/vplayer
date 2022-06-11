@@ -118,6 +118,7 @@ export default {
       dp: null,
       currentVideo: "",
       playlist: [],
+      clients: {},
       ignoreEvents: {
         seek: 0,
         play: 0,
@@ -215,6 +216,37 @@ export default {
           this.videoHandler(result);
         }
       });
+      this.socket.on("status", (res) => {
+        const status = JSON.parse(res);
+        this.clients = status.clients;
+        if (status.video.src) {
+          const video = status.video;
+          this.checkPlayURL(video.src);
+          if (video.paused) {
+            this.ignoreEvents.pause++;
+            this.dp.pause();
+          } else {
+            this.ignoreEvents.play++;
+            this.dp.play();
+          }
+          this.ignoreEvents.seek++;
+          this.dp.seek(video.time);
+          this.ignoreEvents.ratechange++;
+          this.dp.speed(video.speed);
+        }
+      });
+      this.socket.on("join", (id, name) => {
+        if (id !== this.uid) {
+          this.clients[id] = { name: name };
+        }
+      });
+      this.socket.on("left", (id) => {
+        if (id !== this.uid) {
+          delete this.clients[id];
+          this.ignoreEvents.pause++;
+          this.dp.pause();
+        }
+      });
     },
 
     browse() {
@@ -246,25 +278,26 @@ export default {
     playVideo(item) {
       this.browseDialog = false;
       const videoURL = path.join("/movie", item.path, item.name);
-      this.dp.switchVideo({ url: videoURL });
-      this.currentVideo = decodeURI(
-        videoURL.substring(videoURL.lastIndexOf("/") + 1)
-      );
+      this.playURL(videoURL);
+    },
+
+    playURL(url) {
+      this.checkPlayURL(url);
       this.$nextTick(() => {
         this.dp.seek(0);
         this.dp.play();
       });
     },
+    checkPlayURL(url) {
+      if (url && url !== this.dp.video.currentSrc) {
+        this.dp.switchVideo({ url: url });
+        this.dp.notice(`switched to ${url}`, 2000, 0.8);
+        this.currentVideo = decodeURI(url.substring(url.lastIndexOf("/") + 1));
+      }
+    },
 
     videoHandler(event) {
-      const videoURL = event.src;
-      if (videoURL && videoURL !== this.dp.video.currentSrc) {
-        this.dp.switchVideo({ url: videoURL });
-        this.dp.notice(`switched to ${videoURL}`, 2000, 0.8);
-        this.currentVideo = decodeURI(
-          videoURL.substring(videoURL.lastIndexOf("/") + 1)
-        );
-      }
+      this.checkPlayURL(event.src);
       switch (event.action) {
         case "play":
           this.ignoreEvents.seek++;
@@ -298,10 +331,6 @@ export default {
           this.dp.seek(event.time);
           this.ignoreEvents.ratechange++;
           this.dp.speed(event.speed);
-          break;
-        case "stop":
-          this.ignoreEvents.pause++;
-          this.dp.pause();
           break;
       }
     },
