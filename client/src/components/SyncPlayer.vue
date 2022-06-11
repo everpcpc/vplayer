@@ -183,9 +183,9 @@ export default {
         }
         this.sendControl("pause");
       });
-      // dp.on("progress", (event) => {
-      //   console.log("progress", event);
-      // });
+      this.dp.on("progress", () => {
+        this.sendControl("progress");
+      });
       this.dp.on("seeked", () => {
         if (this.ignoreEvents.seek > 0) {
           this.ignoreEvents.seek--;
@@ -198,7 +198,7 @@ export default {
           this.ignoreEvents.ratechange--;
           return;
         }
-        console.log("ratechange");
+        this.sendControl("ratechange");
       });
     },
 
@@ -282,6 +282,10 @@ export default {
           this.ignoreEvents.seek++;
           this.dp.seek(event.time);
           break;
+        case "ratechange":
+          this.ignoreEvents.ratechange++;
+          this.dp.speed(event.speed);
+          break;
         case "sync":
           if (event.paused) {
             this.ignoreEvents.pause++;
@@ -292,6 +296,8 @@ export default {
           }
           this.ignoreEvents.seek++;
           this.dp.seek(event.time);
+          this.ignoreEvents.ratechange++;
+          this.dp.speed(event.speed);
           break;
         case "stop":
           this.ignoreEvents.pause++;
@@ -306,6 +312,7 @@ export default {
         JSON.stringify({
           user: this.uid,
           action: action,
+          speed: this.dp.playbackSpeed,
           time: this.dp.video.currentTime,
           src: this.dp.video.currentSrc,
           paused: this.dp.video.paused,
