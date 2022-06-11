@@ -152,6 +152,7 @@ export default {
       }
       this.dp.switchVideo({ url: videoURL });
       this.dp.seek(0);
+      this.dp.play();
       this.currentVideo = decodeURI(
         videoURL.substring(videoURL.lastIndexOf("/") + 1)
       );
