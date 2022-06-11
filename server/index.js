@@ -38,23 +38,25 @@ function getFileTree(base, dirPath = "") {
 }
 
 io.on('connection', (socket) => {
-    console.log('new connection');
+    const username = socket.handshake.query.username;
+    const uid = socket.handshake.query.uid;
+
+    console.log(`connect: ${uid}(${username})`);
 
     socket.on('disconnect', function () {
-        console.log('disconnect');
+        console.log(`disconnect: ${uid}(${username})`);
         io.emit('video', JSON.stringify({
-            user: 'system',
             action: 'stop',
         }));
     });
 
     socket.on('video', (params) => {
-        console.log('received: video ' + params);
+        console.log(`video: ${uid}(${username})`);
         io.emit('video', params);
     });
 
     socket.on('browse', (callback) => {
-        console.log('received: browse');
+        console.log(`browse: ${uid}(${username})`);
         const tree = getFileTree(argv.data);
         callback(JSON.stringify(tree));
     });
