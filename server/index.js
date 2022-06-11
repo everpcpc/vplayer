@@ -42,6 +42,10 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', function () {
         console.log('disconnect');
+        io.emit('video', JSON.stringify({
+            user: 'system',
+            action: 'stop',
+        }));
     });
 
     socket.on('video', (params) => {

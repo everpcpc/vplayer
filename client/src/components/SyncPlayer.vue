@@ -158,9 +158,9 @@ export default {
       );
     },
 
-    resultHandler(event) {
+    videoHandler(event) {
       const videoURL = event.src;
-      if (videoURL !== this.dp.video.currentSrc) {
+      if (videoURL && videoURL !== this.dp.video.currentSrc) {
         this.dp.switchVideo({ url: videoURL });
         this.dp.notice(`switched to ${videoURL}`, 2000, 0.8);
         this.currentVideo = decodeURI(
@@ -194,6 +194,10 @@ export default {
           }
           this.ignoreEvents.seek++;
           this.dp.seek(event.time);
+          break;
+        case "stop":
+          this.ignoreEvents.pause++;
+          this.dp.pause();
           break;
       }
     },
@@ -235,7 +239,7 @@ export default {
     this.socket.on("video", (res) => {
       const result = JSON.parse(res);
       if (result.user !== this.userID) {
-        this.resultHandler(result);
+        this.videoHandler(result);
       }
     });
 
