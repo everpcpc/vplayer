@@ -166,6 +166,7 @@
 </template>
 
 <script>
+import Hls from "hls.js";
 import DPlayer from "dplayer";
 import { io } from "socket.io-client";
 const path = require("path");
@@ -225,6 +226,7 @@ export default {
         alert("player already initialized");
         return;
       }
+      console.log("HLS support:", Hls.isSupported());
       this.uid = this.randomString(10);
       this.showPlayer = true;
       this.$nextTick(() => {
@@ -238,9 +240,7 @@ export default {
         container: document.getElementById("dplayer"),
         screenshot: true,
         volume: 0,
-        video: {
-          type: "auto",
-        },
+        video: { type: "auto" },
         contextmenu: [
           {
             text: "Sync",
