@@ -80,7 +80,11 @@
                       color="success"
                       @click="hover ? playVideo(item) : undefined"
                     >
-                      {{ hover ? "mdi-play-circle-outline" : "mdi-video" }}
+                      {{
+                        hover
+                          ? "mdi-play-circle-outline"
+                          : "mdi-movie-open-play"
+                      }}
                     </v-icon>
                   </v-hover>
                 </template>
@@ -121,10 +125,19 @@
         <v-card tile>
           <div id="dplayer"></div>
           <v-card-actions>
-            <v-btn icon color="primary" dark @click="playDialog = true">
-              <v-icon>mdi-plus</v-icon>
+            <v-btn
+              color="primary"
+              fab
+              x-small
+              outlined
+              dark
+              @click="playDialog = true"
+            >
+              <v-icon> mdi-link-plus </v-icon>
             </v-btn>
-            <v-btn color="primary" dark @click="browse"> browse </v-btn>
+            <v-btn color="primary" fab x-small outlined dark @click="browse">
+              <v-icon> mdi-folder-plus </v-icon>
+            </v-btn>
             <v-chip color="grey" class="mx-2" label outlined>
               <v-icon left> mdi-play-circle </v-icon>
               {{ currentVideo }}
@@ -291,7 +304,7 @@ export default {
         this.isLoading = true;
         this.refreshFiles();
       }
-      this.dialog = true;
+      this.browseDialog = true;
     },
     refreshFiles() {
       this.socket.emit("browse", (res) => {
