@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import Hls from "hls.js";
 import SyncPlayer from "./components/SyncPlayer";
 
 export default {
@@ -19,5 +20,9 @@ export default {
   data: () => ({
     //
   }),
+
+  mounted() {
+    console.log("HLS support:", Hls.isSupported());
+  },
 };
 </script>
