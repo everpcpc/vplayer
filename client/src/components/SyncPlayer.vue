@@ -145,10 +145,10 @@
           </v-card-actions>
           <v-card-text>
             <v-data-table
+              disable-sort
+              hide-default-footer
               :headers="clientsHeader"
               :items="otherClients"
-              :show-select="false"
-              hide-default-footer
               item-key="user"
               class="elevation-1"
             >
