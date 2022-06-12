@@ -221,6 +221,10 @@ export default {
     },
 
     startPlaying() {
+      if (this.showPlayer) {
+        alert("player already initialized");
+        return;
+      }
       this.uid = this.randomString(10);
       this.showPlayer = true;
       this.$nextTick(() => {
@@ -248,6 +252,12 @@ export default {
         ],
       });
 
+      setInterval(() => {
+        if (this.dp.video.currentTime > 0) {
+          this.sendControl("hearbeat");
+        }
+      }, 2000);
+
       this.dp.on("play", () => {
         if (this.ignoreEvents.play > 0) {
           this.ignoreEvents.play--;
@@ -261,9 +271,6 @@ export default {
           return;
         }
         this.sendControl("pause");
-      });
-      this.dp.on("progress", () => {
-        this.sendControl("progress");
       });
       this.dp.on("seeked", () => {
         if (this.ignoreEvents.seek > 0) {
@@ -404,8 +411,6 @@ export default {
         case "ratechange":
           this.ignoreEvents.ratechange++;
           this.dp.speed(event.speed);
-          break;
-        case "progress":
           break;
         case "sync":
           if (event.paused) {

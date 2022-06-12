@@ -71,7 +71,9 @@ io.on('connection', (socket) => {
             video.speed = event.speed;
         }
 
-        console.log(`video: ${uid}(${username}): ${event.action} at ${event.time} with speed ${event.speed}`);
+        if (event.action !== "hearbeat") {
+            console.log(`video: ${uid}(${username}): ${event.action} at ${event.time} with speed ${event.speed}`);
+        }
         io.emit('video', params);
     });
 
