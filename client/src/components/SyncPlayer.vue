@@ -157,6 +157,12 @@
                   v-text="item.paused ? 'mdi-pause' : 'mdi-play'"
                 ></v-icon>
               </template>
+              <template v-slot:[`item.time`]="{ item }">
+                <span v-text="duration(item.time)"></span>
+              </template>
+              <template v-slot:[`item.speed`]="{ item }">
+                {{ item.speed }}x
+              </template>
             </v-data-table>
           </v-card-text>
         </v-card>
@@ -219,6 +225,18 @@ export default {
         str += Math.random().toString(36).substring(2);
       }
       return str.substring(0, length);
+    },
+    duration(t) {
+      if (!t) return "0s";
+      const hours = Math.floor(t / 3600);
+      t = t - hours * 3600;
+      const minutes = Math.floor(t / 60);
+      const seconds = Math.floor(t - minutes * 60);
+      if (hours) {
+        return `${hours}h:${minutes}m:${seconds}s`;
+      } else {
+        return `${minutes}m:${seconds}s`;
+      }
     },
 
     startPlaying() {
