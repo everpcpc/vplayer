@@ -143,7 +143,22 @@
               {{ currentVideo }}
             </v-chip>
           </v-card-actions>
-          <v-card-text> {{ clients }} </v-card-text>
+          <v-card-text>
+            <v-data-table
+              :headers="clientsHeader"
+              :items="otherClients"
+              :show-select="false"
+              hide-default-footer
+              item-key="user"
+              class="elevation-1"
+            >
+              <template v-slot:[`item.paused`]="{ item }">
+                <v-icon
+                  v-text="item.paused ? 'mdi-pause' : 'mdi-play'"
+                ></v-icon>
+              </template>
+            </v-data-table>
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
@@ -166,6 +181,14 @@ export default {
       currentVideo: "",
       playlist: [],
       clients: [],
+      clientsHeader: [
+        { text: "Name", value: "name", align: "start" },
+        { text: "Progress", value: "time" },
+        { text: "Status", value: "paused" },
+        { text: "Speed", value: "speed" },
+        // { text: "Source", value: "src" },
+        { text: "Last Action", value: "action" },
+      ],
       ignoreEvents: {
         seek: 0,
         play: 0,
@@ -180,6 +203,12 @@ export default {
       search: "",
       expanded: false,
     };
+  },
+
+  computed: {
+    otherClients() {
+      return this.clients.filter((client) => client.user !== this.uid);
+    },
   },
 
   methods: {
@@ -401,7 +430,7 @@ export default {
           user: this.uid,
           name: this.username,
           action: action,
-          speed: this.dp.playbackSpeed,
+          speed: this.dp.video.playbackRate,
           time: this.dp.video.currentTime,
           src: this.dp.video.currentSrc,
           paused: this.dp.video.paused,
