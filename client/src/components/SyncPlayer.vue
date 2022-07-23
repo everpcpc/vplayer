@@ -211,6 +211,12 @@ export default {
     };
   },
 
+  created() {
+    if (localStorage.name) {
+      this.username = localStorage.username;
+    }
+  },
+
   computed: {
     otherClients() {
       return this.clients.filter((client) => client.user !== this.uid);
@@ -244,6 +250,7 @@ export default {
         return;
       }
       this.uid = this.randomString(10);
+      localStorage.username = this.username;
       this.showPlayer = true;
       this.$nextTick(() => {
         this.initPlayer();
