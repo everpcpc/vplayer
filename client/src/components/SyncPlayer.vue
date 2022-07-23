@@ -212,7 +212,7 @@ export default {
   },
 
   created() {
-    if (localStorage.name) {
+    if (localStorage.username) {
       this.username = localStorage.username;
     }
   },
