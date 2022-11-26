@@ -400,6 +400,7 @@ export default {
     },
     checkSwitchVideo(url) {
       if (url && url !== this.dp.video.currentSrc) {
+        console.log("switch video", url);
         this.dp.switchVideo({ url: url, type: "hls" });
         this.dp.notice(`switched to ${url}`, 2000, 0.8);
         this.currentVideo = decodeURI(url.substring(url.lastIndexOf("/") + 1));
