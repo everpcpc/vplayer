@@ -32,6 +32,8 @@ function getFileTree(base, dirPath = "") {
             }
         } else if (file.endsWith(".mp4")) {
             tree.push({ name: file, path: dirPath });
+        } else if (file.endsWith(".ts")) {
+            tree.push({ name: file, path: dirPath });
         }
     })
     return tree
