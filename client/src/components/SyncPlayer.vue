@@ -373,6 +373,7 @@ export default {
       });
       this.socket.on("status", (res) => {
         const status = JSON.parse(res);
+        console.log("Last play status:", status.video);
         this.clients = status.clients;
         if (status.video.src) {
           const video = status.video;

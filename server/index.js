@@ -78,6 +78,9 @@ io.on('connection', (socket) => {
         if (event.src) {
             video.src = event.src;
         }
+        if (event.subtitle) {
+            video.subtitle = event.subtitle;
+        }
         if (event.time) {
             video.time = event.time;
         }
