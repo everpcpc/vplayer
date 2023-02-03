@@ -182,7 +182,6 @@ export default {
     return {
       username: "",
       uid: "",
-      volume: 0,
       showPlayer: false,
       socket: null,
       dp: null,
@@ -216,7 +215,6 @@ export default {
 
   created() {
     this.username = localStorage.username || "";
-    this.volume = localStorage.volume || 0;
   },
 
   computed: {
@@ -306,7 +304,6 @@ export default {
       let dp = new DPlayer({
         container: document.getElementById("dplayer"),
         screenshot: true,
-        volume: this.volume,
         video: {
           url: url,
           type: "auto",
