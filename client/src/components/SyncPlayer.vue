@@ -267,7 +267,11 @@ export default {
     playItem(item) {
       this.browseDialog = false;
       const url = path.join("/movie", item.path, item.name);
-      this.checkSwitchVideo(url, item.subtitle);
+      let subtitle = null;
+      if (item.subtitle) {
+        subtitle = path.join("/movie", item.path, item.subtitle);
+      }
+      this.checkSwitchVideo(url, subtitle);
     },
 
     checkSwitchVideo(url, subtitle) {
