@@ -22,18 +22,30 @@ const argv = yargs
     .argv;
 
 function getFileTree(base, dirPath = "") {
-    var files = fs.readdirSync(path.join(base, dirPath));
-    var tree = [];
+    let files = fs.readdirSync(path.join(base, dirPath));
+    let tree = [];
     files.forEach(function (file) {
         if (fs.statSync(path.join(base, dirPath, file)).isDirectory()) {
-            var childen = getFileTree(base, path.join(dirPath, file));
+            let childen = getFileTree(base, path.join(dirPath, file));
             if (childen.length > 0) {
                 tree.push({ name: file, children: childen });
             }
-        } else if (file.endsWith(".mp4")) {
-            tree.push({ name: file, path: dirPath });
-        } else if (file.endsWith(".ts")) {
-            tree.push({ name: file, path: dirPath });
+        } else {
+            let token = file.split('.');
+            const ext = token.pop();
+            const fname = token.join('.');
+            switch (ext.toLowerCase()) {
+                case "mp4", "ts":
+                    const subtitle = fname.join('.') + ".vtt";
+                    if (fs.existsSync(path.join(base, dirPath, subtitle))) {
+                        tree.push({ name: file, path: dirPath, subtitle: subtitle });
+                    } else {
+                        tree.push({ name: file, path: dirPath });
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     })
     return tree

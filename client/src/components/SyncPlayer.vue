@@ -78,7 +78,7 @@
                   <v-hover v-else v-slot="{ hover }">
                     <v-icon
                       color="success"
-                      @click="hover ? playVideo(item) : undefined"
+                      @click="hover ? playItem(item) : undefined"
                     >
                       {{
                         hover
@@ -181,9 +181,11 @@ export default {
     return {
       username: "",
       uid: "",
+      volume: 0,
       showPlayer: false,
       socket: null,
       dp: null,
+      heartbeat: null,
       currentVideo: "",
       playlist: [],
       clients: [],
@@ -212,9 +214,8 @@ export default {
   },
 
   created() {
-    if (localStorage.username) {
-      this.username = localStorage.username;
-    }
+    this.username = localStorage.username || "";
+    this.volume = localStorage.volume || 0;
   },
 
   computed: {
@@ -253,17 +254,61 @@ export default {
       localStorage.username = this.username;
       this.showPlayer = true;
       this.$nextTick(() => {
-        this.initPlayer();
         this.initSocket();
       });
     },
 
-    initPlayer() {
-      this.dp = new DPlayer({
+    playURL(url) {
+      this.playDialog = false;
+      this.checkSwitchVideo(url, null);
+    },
+
+    playItem(item) {
+      this.browseDialog = false;
+      const url = path.join("/movie", item.path, item.name);
+      this.checkSwitchVideo(url, item.subtitle);
+    },
+
+    checkSwitchVideo(url, subtitle) {
+      if (!url) {
+        return;
+      }
+      if (this.dp) {
+        if (this.dp.video.currentSrc === url) {
+          return;
+        }
+        if (this.heartbeat) {
+          clearInterval(this.heartbeat);
+        }
+        this.dp.destroy();
+      }
+      this.currentVideo = decodeURI(url.substring(url.lastIndexOf("/") + 1));
+      this.$nextTick(() => {
+        this.playVideo(url, subtitle);
+      });
+    },
+
+    playVideo(url, subtitle) {
+      let subtitleConfig = null;
+      if (subtitle) {
+        subtitleConfig = {
+          url: subtitle,
+          type: "webvtt",
+          fontSize: "20px",
+          bottom: "10%",
+        };
+      }
+      let dp = new DPlayer({
         container: document.getElementById("dplayer"),
         screenshot: true,
-        volume: 0,
-        video: { type: "auto" },
+        volume: this.volume,
+        video: {
+          url: url,
+          type: "auto",
+        },
+        subtitle: subtitleConfig,
+        autoplay: false,
+        preload: "auto",
         contextmenu: [
           {
             text: "Sync",
@@ -275,40 +320,42 @@ export default {
         ],
       });
 
-      setInterval(() => {
-        if (this.dp.video.currentTime > 0) {
+      this.heartbeat = setInterval(() => {
+        if (dp.video.currentTime > 0) {
           this.sendControl("hearbeat");
         }
       }, 2000);
 
-      this.dp.on("play", () => {
+      dp.on("play", () => {
         if (this.ignoreEvents.play > 0) {
           this.ignoreEvents.play--;
           return;
         }
         this.sendControl("play");
       });
-      this.dp.on("pause", () => {
+      dp.on("pause", () => {
         if (this.ignoreEvents.pause > 0) {
           this.ignoreEvents.pause--;
           return;
         }
         this.sendControl("pause");
       });
-      this.dp.on("seeked", () => {
+      dp.on("seeked", () => {
         if (this.ignoreEvents.seek > 0) {
           this.ignoreEvents.seek--;
           return;
         }
         this.sendControl("seek");
       });
-      this.dp.on("ratechange", () => {
+      dp.on("ratechange", () => {
         if (this.ignoreEvents.ratechange > 0) {
           this.ignoreEvents.ratechange--;
           return;
         }
         this.sendControl("ratechange");
       });
+
+      this.dp = dp;
     },
 
     initSocket() {
@@ -329,7 +376,7 @@ export default {
         this.clients = status.clients;
         if (status.video.src) {
           const video = status.video;
-          this.checkSwitchVideo(video.src);
+          this.checkSwitchVideo(video.src, video.subtitle);
           if (!video.paused) {
             this.ignoreEvents.play++;
             this.dp.play();
@@ -384,28 +431,6 @@ export default {
         this.$refs.browseTree.updateAll(this.expanded);
       }
     },
-    playVideo(item) {
-      this.browseDialog = false;
-      const url = path.join("/movie", item.path, item.name);
-      this.playURL(url);
-    },
-
-    playURL(url) {
-      this.playDialog = false;
-      this.checkSwitchVideo(url);
-      this.$nextTick(() => {
-        this.dp.seek(0);
-        this.dp.play();
-      });
-    },
-    checkSwitchVideo(url) {
-      if (url && url !== this.dp.video.currentSrc) {
-        console.log("switch video", url);
-        this.dp.switchVideo({ url: url, type: "hls" });
-        this.dp.notice(`switched to ${url}`, 2000, 0.8);
-        this.currentVideo = decodeURI(url.substring(url.lastIndexOf("/") + 1));
-      }
-    },
 
     updateClient(event) {
       this.clients = this.clients.filter((e) => e.user !== event.user);
@@ -414,7 +439,8 @@ export default {
 
     videoHandler(event) {
       this.updateClient(event);
-      this.checkSwitchVideo(event.src);
+      this.checkSwitchVideo(event.src, event.subtitle);
+      // TODO: nextTick or not?
       switch (event.action) {
         case "play":
           this.ignoreEvents.seek++;
@@ -453,18 +479,23 @@ export default {
     },
 
     sendControl(action) {
-      this.socket.emit(
-        "video",
-        JSON.stringify({
-          user: this.uid,
-          name: this.username,
-          action: action,
-          speed: this.dp.video.playbackRate,
-          time: this.dp.video.currentTime,
-          src: this.dp.video.currentSrc,
-          paused: this.dp.video.paused,
-        })
-      );
+      if (!this.dp) {
+        return;
+      }
+      let data = {
+        user: this.uid,
+        name: this.username,
+        action: action,
+        speed: this.dp.video.playbackRate,
+        time: this.dp.video.currentTime,
+        src: this.dp.video.currentSrc,
+        subtitle: null,
+        paused: this.dp.video.paused,
+      };
+      if (this.dp.subtitle) {
+        data.subtitle = this.dp.subtitle.url;
+      }
+      this.socket.emit("video", JSON.stringify(data));
     },
   },
 };
