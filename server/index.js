@@ -82,8 +82,6 @@ io.on('connection', (socket) => {
         video.paused = event.paused;
         if (event.src) {
             video.src = event.src;
-        }
-        if (event.subtitle) {
             video.subtitle = event.subtitle;
         }
         if (event.time) {
