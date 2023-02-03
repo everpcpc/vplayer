@@ -87,6 +87,7 @@
                       }}
                     </v-icon>
                   </v-hover>
+                  <v-icon v-if="item.subtitle"> mdi-subtitles </v-icon>
                 </template>
               </v-treeview>
             </v-card-text>
