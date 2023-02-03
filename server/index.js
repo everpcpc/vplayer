@@ -22,8 +22,10 @@ const argv = yargs
     .argv;
 
 function getFileTree(base, dirPath = "") {
-    let files = fs.readdirSync(path.join(base, dirPath));
     let tree = [];
+    let subtitles = {};
+    let videos = [];
+    let files = fs.readdirSync(path.join(base, dirPath));
     files.forEach(function (file) {
         if (fs.statSync(path.join(base, dirPath, file)).isDirectory()) {
             let childen = getFileTree(base, path.join(dirPath, file));
@@ -35,18 +37,21 @@ function getFileTree(base, dirPath = "") {
             const ext = token.pop();
             const fname = token.join('.');
             switch (ext.toLowerCase()) {
-                case "mp4", "ts":
-                    const subtitle = fname.join('.') + ".vtt";
-                    if (fs.existsSync(path.join(base, dirPath, subtitle))) {
-                        tree.push({ name: file, path: dirPath, subtitle: subtitle });
-                    } else {
-                        tree.push({ name: file, path: dirPath });
-                    }
+                case "mp4":
+                    videos.push({ file: file, fname: fname, ext: ext });
+                    break;
+                case "ts":
+                    videos.push({ file: file, fname: fname, ext: ext });
+                    break;
+                case "vtt":
+                    subtitles[fname] = file;
                     break;
                 default:
-                    break;
             }
         }
+    })
+    videos.forEach((video) => {
+        tree.push({ name: video.file, path: dirPath, subtitle: subtitles[video.fname] });
     })
     return tree
 }
