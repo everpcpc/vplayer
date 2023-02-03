@@ -299,8 +299,10 @@ export default {
     playVideo(url, subtitle) {
       console.log("currently playing:", url, subtitle);
       let subtitleConfig = null;
+      let loadASS = false;
       if (subtitle) {
         if (subtitle.endsWith(".ass")) {
+          loadASS = true;
           subtitleConfig = {
             url: subtitle,
             type: "ass",
@@ -370,16 +372,16 @@ export default {
         this.sendControl("ratechange");
       });
 
-      if (subtitleConfig.type === "ass") {
+      if (loadASS) {
         this.$nextTick(() => {
-          this.loadAss(subtitle);
+          this.loadASS(subtitle);
         });
       }
 
       this.dp = dp;
     },
 
-    loadAss(subtitle) {
+    loadASS(subtitle) {
       // TODO:(everpcpc)
       console.log(subtitle);
     },
