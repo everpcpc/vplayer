@@ -141,6 +141,7 @@
             </v-btn>
             <v-chip color="grey" class="mx-2" label outlined>
               <v-icon left> mdi-play-circle </v-icon>
+              <v-icon v-if="currentSubtitle" left> mdi-subtitles </v-icon>
               {{ currentVideo }}
             </v-chip>
           </v-card-actions>
@@ -187,6 +188,7 @@ export default {
       dp: null,
       heartbeat: null,
       currentVideo: "",
+      currentSubtitle: null,
       playlist: [],
       clients: [],
       clientsHeader: [
@@ -260,6 +262,7 @@ export default {
     playURL(url) {
       this.playDialog = false;
       this.checkSwitchVideo(url, null);
+      this.sendSwitch(url, null);
     },
 
     playItem(item) {
@@ -270,6 +273,7 @@ export default {
         subtitle = path.join("/movie", item.path, item.subtitle);
       }
       this.checkSwitchVideo(url, subtitle);
+      this.sendSwitch(url, subtitle);
     },
 
     checkSwitchVideo(url, subtitle) {
@@ -286,12 +290,14 @@ export default {
         this.dp.destroy();
       }
       this.currentVideo = decodeURI(url.substring(url.lastIndexOf("/") + 1));
+      this.currentSubtitle = subtitle;
       this.$nextTick(() => {
         this.playVideo(url, subtitle);
       });
     },
 
     playVideo(url, subtitle) {
+      console.log("currently playing:", url, subtitle);
       let subtitleConfig = null;
       if (subtitle) {
         subtitleConfig = {
@@ -482,6 +488,17 @@ export default {
             break;
         }
       });
+    },
+
+    sendSwitch(src, subtitle) {
+      let data = {
+        user: this.uid,
+        name: this.username,
+        action: "switch",
+        src: src,
+        subtitle: subtitle,
+      };
+      this.socket.emit("video", JSON.stringify(data));
     },
 
     sendControl(action) {
