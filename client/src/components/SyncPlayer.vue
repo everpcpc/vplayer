@@ -383,18 +383,20 @@ export default {
         if (status.video.src) {
           const video = status.video;
           this.checkSwitchVideo(video.src, video.subtitle);
-          if (!video.paused) {
-            this.ignoreEvents.play++;
-            this.dp.play();
-          }
-          if (video.time) {
-            this.ignoreEvents.seek++;
-            this.dp.seek(video.time);
-          }
-          if (video.speed) {
-            this.ignoreEvents.ratechange++;
-            this.dp.speed(video.speed);
-          }
+          this.$nextTick(() => {
+            if (!video.paused) {
+              this.ignoreEvents.play++;
+              this.dp.play();
+            }
+            if (video.time) {
+              this.ignoreEvents.seek++;
+              this.dp.seek(video.time);
+            }
+            if (video.speed) {
+              this.ignoreEvents.ratechange++;
+              this.dp.speed(video.speed);
+            }
+          });
         }
       });
       this.socket.on("join", (user, name) => {
@@ -446,42 +448,43 @@ export default {
     videoHandler(event) {
       this.updateClient(event);
       this.checkSwitchVideo(event.src, event.subtitle);
-      // TODO: nextTick or not?
-      switch (event.action) {
-        case "play":
-          this.ignoreEvents.seek++;
-          this.dp.seek(event.time + 0.2); // +0.2s for network delay
-          this.ignoreEvents.play++;
-          this.dp.play();
-          break;
-        case "pause":
-          this.ignoreEvents.seek++;
-          this.dp.seek(event.time);
-          this.ignoreEvents.pause++;
-          this.dp.pause();
-          break;
-        case "seek":
-          this.ignoreEvents.seek++;
-          this.dp.seek(event.time);
-          break;
-        case "ratechange":
-          this.ignoreEvents.ratechange++;
-          this.dp.speed(event.speed);
-          break;
-        case "sync":
-          if (event.paused) {
-            this.ignoreEvents.pause++;
-            this.dp.pause();
-          } else {
+      this.$nextTick(() => {
+        switch (event.action) {
+          case "play":
+            this.ignoreEvents.seek++;
+            this.dp.seek(event.time + 0.2); // +0.2s for network delay
             this.ignoreEvents.play++;
             this.dp.play();
-          }
-          this.ignoreEvents.seek++;
-          this.dp.seek(event.time);
-          this.ignoreEvents.ratechange++;
-          this.dp.speed(event.speed);
-          break;
-      }
+            break;
+          case "pause":
+            this.ignoreEvents.seek++;
+            this.dp.seek(event.time);
+            this.ignoreEvents.pause++;
+            this.dp.pause();
+            break;
+          case "seek":
+            this.ignoreEvents.seek++;
+            this.dp.seek(event.time);
+            break;
+          case "ratechange":
+            this.ignoreEvents.ratechange++;
+            this.dp.speed(event.speed);
+            break;
+          case "sync":
+            if (event.paused) {
+              this.ignoreEvents.pause++;
+              this.dp.pause();
+            } else {
+              this.ignoreEvents.play++;
+              this.dp.play();
+            }
+            this.ignoreEvents.seek++;
+            this.dp.seek(event.time);
+            this.ignoreEvents.ratechange++;
+            this.dp.speed(event.speed);
+            break;
+        }
+      });
     },
 
     sendControl(action) {
