@@ -186,6 +186,7 @@ export default {
       showPlayer: false,
       socket: null,
       dp: null,
+      ass: null,
       heartbeat: null,
       currentVideo: "",
       currentSubtitle: null,
@@ -196,7 +197,6 @@ export default {
         { text: "Progress", value: "time" },
         { text: "Status", value: "paused" },
         { text: "Speed", value: "speed" },
-        // { text: "Source", value: "src" },
         { text: "Last Action", value: "action" },
       ],
       ignoreEvents: {
@@ -300,12 +300,19 @@ export default {
       console.log("currently playing:", url, subtitle);
       let subtitleConfig = null;
       if (subtitle) {
-        subtitleConfig = {
-          url: subtitle,
-          type: "webvtt",
-          fontSize: "20px",
-          bottom: "20px",
-        };
+        if (subtitle.endsWith(".ass")) {
+          subtitleConfig = {
+            url: subtitle,
+            type: "ass",
+          };
+        } else if (subtitle.endsWith(".vtt")) {
+          subtitleConfig = {
+            url: subtitle,
+            type: "webvtt",
+            fontSize: "20px",
+            bottom: "20px",
+          };
+        }
       }
       let dp = new DPlayer({
         container: document.getElementById("dplayer"),
@@ -363,7 +370,18 @@ export default {
         this.sendControl("ratechange");
       });
 
+      if (subtitleConfig.type === "ass") {
+        this.$nextTick(() => {
+          this.loadAss(subtitle);
+        });
+      }
+
       this.dp = dp;
+    },
+
+    loadAss(subtitle) {
+      // TODO:(everpcpc)
+      console.log(subtitle);
     },
 
     initSocket() {

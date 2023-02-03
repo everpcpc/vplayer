@@ -46,6 +46,9 @@ function getFileTree(base, dirPath = "") {
                 case "vtt":
                     subtitles[fname] = file;
                     break;
+                case "ass":
+                    subtitles[fname] = file;
+                    break;
                 default:
             }
         }
