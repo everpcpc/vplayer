@@ -300,7 +300,7 @@ export default {
           url: subtitle,
           type: "webvtt",
           fontSize: "20px",
-          bottom: "10%",
+          bottom: "20px",
         };
       }
       let dp = new DPlayer({
