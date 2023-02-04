@@ -174,6 +174,7 @@
 </template>
 
 <script>
+import ASS from "assjs";
 import Hls from "hls.js";
 import DPlayer from "dplayer";
 import { io } from "socket.io-client";
@@ -294,6 +295,9 @@ export default {
         }
         this.dp.destroy();
       }
+      if (this.ass) {
+        this.ass.destroy();
+      }
       this.currentVideo = decodeURI(url.substring(url.lastIndexOf("/") + 1));
       this.currentSubtitle = subtitle;
       this.$nextTick(() => {
@@ -347,6 +351,7 @@ export default {
         video: video,
         subtitle: subtitleConfig,
         autoplay: false,
+        airplay: true,
         preload: "auto",
         contextmenu: [
           {
@@ -396,16 +401,36 @@ export default {
 
       if (loadASS) {
         this.$nextTick(() => {
-          this.loadASS(subtitle);
+          this.loadASS(dp, subtitle);
         });
       }
 
       this.dp = dp;
     },
 
-    loadASS(subtitle) {
-      // TODO:(everpcpc)
-      console.log(subtitle);
+    loadASS(dp, subtitle) {
+      const container = document.getElementsByClassName("dplayer-video")[0];
+      fetch(subtitle)
+        .then((res) => res.text())
+        .then((text) => {
+          const ass = new ASS(text, container);
+          dp.on("resize", () => {
+            console.log("ass resizing...");
+            ass.resize();
+          });
+          dp.on("subtitle_show", () => {
+            console.log("ass show...");
+            ass.show();
+          });
+          dp.on("subtitle_hide", () => {
+            console.log("ass hide...");
+            ass.hide();
+          });
+          this.ass = ass;
+        })
+        .catch((err) => {
+          dp.notice(`ASS subtitle load failed: ${err}`, 2000, 0.8);
+        });
     },
 
     initSocket() {
