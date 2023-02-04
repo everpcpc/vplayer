@@ -302,7 +302,7 @@ export default {
     },
 
     playVideo(url, subtitle) {
-      console.log("currently playing:", url, subtitle);
+      console.log("Now playing:", url, subtitle);
       let subtitleConfig = null;
       let loadASS = false;
       if (subtitle) {
@@ -322,7 +322,7 @@ export default {
         }
       }
       let video = null;
-      if (url.endsWith(".m3u")) {
+      if (url.endsWith(".m3u8")) {
         video = {
           url: url,
           type: "vueHls",
@@ -331,7 +331,7 @@ export default {
               const hls = new Hls();
               hls.loadSource(video.src);
               hls.attachMedia(video);
-              player.notice("playing hls", 2000, 0.8);
+              player.notice("playing HLS", 2000, 0.8);
             },
           },
         };
@@ -361,7 +361,7 @@ export default {
 
       this.heartbeat = setInterval(() => {
         if (dp.video.currentTime > 0) {
-          this.sendControl("hearbeat");
+          this.sendControl("heartbeat");
         }
       }, 2000);
 

@@ -83,10 +83,6 @@ io.on('connection', (socket) => {
     socket.on('video', (params) => {
         const event = JSON.parse(params);
         video.paused = event.paused;
-        if (event.src) {
-            video.src = event.src;
-            video.subtitle = event.subtitle;
-        }
         if (event.time) {
             video.time = event.time;
         }
@@ -94,8 +90,16 @@ io.on('connection', (socket) => {
             video.speed = event.speed;
         }
 
-        if (event.action !== "hearbeat") {
-            console.log(`video: ${uid}(${username}): ${event.action} at ${event.time} with speed ${event.speed}`);
+        switch (event.action) {
+            case "switch":
+                video.src = event.src;
+                video.subtitle = event.subtitle;
+                console.log(`switch: ${uid}(${username}): ${event.src}, ${event.subtitle}`);
+                break;
+            case "heartbeat":
+                break;
+            default:
+                console.log(`video: ${uid}(${username}): ${event.action} at ${event.time} with speed ${event.speed}`);
         }
         io.emit('video', params);
     });
