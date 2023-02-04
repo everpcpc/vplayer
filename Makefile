@@ -1,16 +1,18 @@
-all: server client
+DATA_DIR ?= /data/movie
 
-.PHONY: server client
+default: build
 
-server:
-	$(MAKE) -C server
+setup:
+	npm install
 
-client:
-	$(MAKE) -C client
+build: setup
+	npm run build
 
+dev:
+	npm run serve
 
-run_server:
-	$(MAKE) -C server dev
+server: setup
+	ncc build server.js -o server
 
-run_client:
-	$(MAKE) -C client dev
+serve:
+	node server/index.js --data $(DATA_DIR)

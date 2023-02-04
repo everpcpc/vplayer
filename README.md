@@ -1,15 +1,17 @@
 # vplayer
 
-## build
-
-```sh
-npm i -g @vercel/ncc
-make
+### build
+```
+make build
 ```
 
-## dev
+## build server
+```
+npm i -g @vercel/ncc
+make server
+```
 
-```sh
-make run_server
-make run_client
+### Compiles and hot-reloads for development
+```
+make dev
 ```

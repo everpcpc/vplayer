@@ -1,6 +1,0 @@
-{
-    "dependencies": {
-        "socket.io": "^4.5.1",
-        "yargs": "^17.5.1"
-    }
-}
