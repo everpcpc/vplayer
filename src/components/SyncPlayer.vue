@@ -110,12 +110,17 @@
                 :rules="[() => !!videoURL || 'url is required']"
                 solo
               ></v-text-field>
+              <v-text-field
+                v-model="subtitleURL"
+                label="Subtitle URL"
+                solo
+              ></v-text-field>
             </v-card-text>
             <v-card-actions class="justify-center">
               <v-btn
                 color="primary"
                 :disabled="!videoURL"
-                @click="playURL(videoURL)"
+                @click="playURL(videoURL, subtitleURL)"
               >
                 play
               </v-btn>
@@ -209,6 +214,7 @@ export default {
       },
       playDialog: false,
       videoURL: "",
+      subtitleURL: "",
       browseDialog: false,
       isLoading: false,
       files: [],
@@ -265,10 +271,10 @@ export default {
       });
     },
 
-    playURL(url) {
+    playURL(url, subtitle) {
       this.playDialog = false;
-      this.checkSwitchVideo(url, null);
-      this.sendSwitch(url, null);
+      this.checkSwitchVideo(url, subtitle);
+      this.sendSwitch(url, subtitle);
     },
 
     playItem(item) {
@@ -286,6 +292,7 @@ export default {
       if (!url) {
         return;
       }
+
       if (this.dp) {
         if (this.dp.video.currentSrc === url) {
           return;
@@ -293,11 +300,12 @@ export default {
         if (this.heartbeat) {
           clearInterval(this.heartbeat);
         }
+        if (this.ass) {
+          this.ass.destroy();
+        }
         this.dp.destroy();
       }
-      if (this.ass) {
-        this.ass.destroy();
-      }
+
       this.currentVideo = decodeURI(url.substring(url.lastIndexOf("/") + 1));
       this.currentSubtitle = subtitle;
       this.$nextTick(() => {
@@ -409,23 +417,25 @@ export default {
     },
 
     loadASS(dp, subtitle) {
-      const container = document.getElementsByClassName("dplayer-video")[0];
+      const video = document.getElementsByClassName("dplayer-video")[0];
       fetch(subtitle)
         .then((res) => res.text())
         .then((text) => {
-          const ass = new ASS(text, container);
+          const ass = new ASS(text, video, {
+            container: document.getElementById("dplayer"),
+          });
           dp.on("resize", () => {
-            console.log("ass resizing...");
             ass.resize();
           });
           dp.on("subtitle_show", () => {
-            console.log("ass show...");
             ass.show();
           });
           dp.on("subtitle_hide", () => {
-            console.log("ass hide...");
             ass.hide();
           });
+          // document.getElementsByClassName("ASS-container")[0].style.width = "";
+          // document.getElementsByClassName("ASS-container")[0].style.height = "";
+          // ass.resize();
           this.ass = ass;
         })
         .catch((err) => {
