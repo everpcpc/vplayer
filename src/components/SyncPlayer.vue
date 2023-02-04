@@ -275,6 +275,9 @@ export default {
       this.playDialog = false;
       this.checkSwitchVideo(url, subtitle);
       this.sendSwitch(url, subtitle);
+      this.$nextTick(() => {
+        this.dp.play();
+      });
     },
 
     playItem(item) {
@@ -286,6 +289,9 @@ export default {
       }
       this.checkSwitchVideo(url, subtitle);
       this.sendSwitch(url, subtitle);
+      this.$nextTick(() => {
+        this.dp.play();
+      });
     },
 
     checkSwitchVideo(url, subtitle) {
@@ -409,7 +415,6 @@ export default {
 
       this.dp = dp;
       this.$nextTick(() => {
-        this.dp.play();
         if (loadASS) {
           this.loadASS(dp, subtitle);
         }
