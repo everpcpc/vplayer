@@ -327,7 +327,7 @@ export default {
             url: subtitle,
             type: "webvtt",
             fontSize: "20px",
-            bottom: "10px",
+            bottom: "2px",
           };
         }
       }
