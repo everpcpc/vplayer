@@ -422,7 +422,7 @@ export default {
         .then((res) => res.text())
         .then((text) => {
           const ass = new ASS(text, video, {
-            container: document.getElementById("dplayer"),
+            container: document.getElementsByClassName("dplayer-video-wrap")[0],
           });
           dp.on("resize", () => {
             ass.resize();
