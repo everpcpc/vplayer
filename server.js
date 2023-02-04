@@ -83,8 +83,8 @@ io.on('connection', (socket) => {
     socket.on('video', (params) => {
         const event = JSON.parse(params);
         video.paused = event.paused;
-        if (event.time) {
-            video.time = event.time;
+        if (event.progress) {
+            video.progress = event.progress;
         }
         if (event.speed) {
             video.speed = event.speed;
@@ -99,7 +99,7 @@ io.on('connection', (socket) => {
             case "heartbeat":
                 break;
             default:
-                console.log(`video: ${uid}(${username}): ${event.action} at ${event.time} with speed ${event.speed}`);
+                console.log(`video: ${uid}(${username}): ${event.action} at ${event.progress} with speed ${event.speed}`);
         }
         io.emit('video', params);
     });

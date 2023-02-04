@@ -128,8 +128,8 @@
           </v-card>
         </v-dialog>
 
+        <div id="dplayer"></div>
         <v-card tile>
-          <div id="dplayer"></div>
           <v-card-actions>
             <v-btn
               color="primary"
@@ -149,29 +149,21 @@
               <v-icon v-if="currentSubtitle" left> mdi-subtitles </v-icon>
               {{ currentVideo }}
             </v-chip>
-          </v-card-actions>
-          <v-card-text>
-            <v-data-table
-              disable-sort
-              hide-default-footer
-              :headers="clientsHeader"
-              :items="otherClients"
-              item-key="user"
-              class="elevation-1"
+            <v-chip
+              v-for="client in otherClients"
+              :key="client.user"
+              :color="client.paused ? 'grey' : 'success'"
+              :text-color="client.paused ? 'grey' : 'success'"
+              label
+              outlined
             >
-              <template v-slot:[`item.paused`]="{ item }">
-                <v-icon
-                  v-text="item.paused ? 'mdi-pause' : 'mdi-play'"
-                ></v-icon>
-              </template>
-              <template v-slot:[`item.time`]="{ item }">
-                <span v-text="duration(item.time)"></span>
-              </template>
-              <template v-slot:[`item.speed`]="{ item }">
-                {{ item.speed }}x
-              </template>
-            </v-data-table>
-          </v-card-text>
+              <v-icon left>
+                {{ client.paused ? "mdi-pause" : "mdi-play" }}
+              </v-icon>
+              {{ client.name }} - {{ duration(client.progress) }}
+              <v-avatar right> {{ client.speed }}x </v-avatar>
+            </v-chip>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
@@ -201,7 +193,7 @@ export default {
       clients: [],
       clientsHeader: [
         { text: "Name", value: "name", align: "start" },
-        { text: "Progress", value: "time" },
+        { text: "Progress", value: "progress" },
         { text: "Status", value: "paused" },
         { text: "Speed", value: "speed" },
         { text: "Last Action", value: "action" },
@@ -415,6 +407,7 @@ export default {
 
       this.dp = dp;
       this.$nextTick(() => {
+        dp.resize();
         if (loadASS) {
           this.loadASS(dp, subtitle);
         }
@@ -473,9 +466,9 @@ export default {
               this.ignoreEvents.play++;
               this.dp.play();
             }
-            if (video.time) {
+            if (video.progress) {
               this.ignoreEvents.seek++;
-              this.dp.seek(video.time);
+              this.dp.seek(video.progress);
             }
             if (video.speed) {
               this.ignoreEvents.ratechange++;
@@ -537,19 +530,19 @@ export default {
         switch (event.action) {
           case "play":
             this.ignoreEvents.seek++;
-            this.dp.seek(event.time + 0.2); // +0.2s for network delay
+            this.dp.seek(event.progress + 0.2); // +0.2s for network delay
             this.ignoreEvents.play++;
             this.dp.play();
             break;
           case "pause":
             this.ignoreEvents.seek++;
-            this.dp.seek(event.time);
+            this.dp.seek(event.progress);
             this.ignoreEvents.pause++;
             this.dp.pause();
             break;
           case "seek":
             this.ignoreEvents.seek++;
-            this.dp.seek(event.time);
+            this.dp.seek(event.progress);
             break;
           case "ratechange":
             this.ignoreEvents.ratechange++;
@@ -564,7 +557,7 @@ export default {
               this.dp.play();
             }
             this.ignoreEvents.seek++;
-            this.dp.seek(event.time);
+            this.dp.seek(event.progress);
             this.ignoreEvents.ratechange++;
             this.dp.speed(event.speed);
             break;
@@ -592,10 +585,11 @@ export default {
         name: this.username,
         action: action,
         speed: this.dp.video.playbackRate,
-        time: this.dp.video.currentTime,
+        progress: this.dp.video.currentTime,
         src: this.dp.video.currentSrc,
         subtitle: null,
         paused: this.dp.video.paused,
+        timestamp: Date.now(),
       };
       if (this.dp.subtitle) {
         data.subtitle = this.dp.subtitle.url;
