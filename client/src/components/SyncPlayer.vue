@@ -174,6 +174,7 @@
 </template>
 
 <script>
+import Hls from "hls.js";
 import DPlayer from "dplayer";
 import { io } from "socket.io-client";
 const path = require("path");
@@ -217,6 +218,10 @@ export default {
 
   created() {
     this.username = localStorage.username || "";
+  },
+
+  mounted() {
+    console.log("HLS support:", Hls.isSupported());
   },
 
   computed: {
@@ -316,13 +321,30 @@ export default {
           };
         }
       }
+      let video = null;
+      if (url.endsWith(".m3u")) {
+        video = {
+          url: url,
+          type: "vueHls",
+          customType: {
+            vueHls: function (video, player) {
+              const hls = new Hls();
+              hls.loadSource(video.src);
+              hls.attachMedia(video);
+              player.notice("playing hls", 2000, 0.8);
+            },
+          },
+        };
+      } else {
+        video = {
+          url: url,
+          type: "auto",
+        };
+      }
       let dp = new DPlayer({
         container: document.getElementById("dplayer"),
         screenshot: true,
-        video: {
-          url: url,
-          type: "auto",
-        },
+        video: video,
         subtitle: subtitleConfig,
         autoplay: false,
         preload: "auto",
