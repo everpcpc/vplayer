@@ -407,7 +407,6 @@ export default {
 
       this.dp = dp;
       this.$nextTick(() => {
-        dp.resize();
         if (loadASS) {
           this.loadASS(dp, subtitle);
         }
@@ -422,18 +421,17 @@ export default {
           const ass = new ASS(text, video, {
             container: document.getElementsByClassName("dplayer-video-wrap")[0],
           });
-          dp.on("resize", () => {
+          dp.on("resize", (event) => {
+            console.log("dp resize: ", event);
             ass.resize();
           });
           dp.on("subtitle_show", () => {
+            ass.resize();
             ass.show();
           });
           dp.on("subtitle_hide", () => {
             ass.hide();
           });
-          // document.getElementsByClassName("ASS-container")[0].style.width = "";
-          // document.getElementsByClassName("ASS-container")[0].style.height = "";
-          // ass.resize();
           this.ass = ass;
         })
         .catch((err) => {
@@ -599,3 +597,15 @@ export default {
   },
 };
 </script>
+
+<style lang="scss">
+.dplayer {
+  > .dplayer-video-wrap {
+    > video {
+      height: auto;
+      width: 100%;
+      object-fit: cover;
+    }
+  }
+}
+</style>
