@@ -407,13 +407,13 @@ export default {
         this.sendControl("ratechange");
       });
 
-      if (loadASS) {
-        this.$nextTick(() => {
-          this.loadASS(dp, subtitle);
-        });
-      }
-
       this.dp = dp;
+      this.$nextTick(() => {
+        if (loadASS) {
+          this.dp.play();
+          this.loadASS(dp, subtitle);
+        }
+      });
     },
 
     loadASS(dp, subtitle) {
