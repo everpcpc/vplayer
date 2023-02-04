@@ -409,8 +409,8 @@ export default {
 
       this.dp = dp;
       this.$nextTick(() => {
+        this.dp.play();
         if (loadASS) {
-          this.dp.play();
           this.loadASS(dp, subtitle);
         }
       });
