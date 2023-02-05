@@ -368,10 +368,16 @@ export default {
         preload: "auto",
         contextmenu: [
           {
-            text: "Sync",
+            text: "Force Sync Others",
             click: (player) => {
               this.sendControl("sync");
               player.notice("synced", 2000, 0.8);
+            },
+          },
+          {
+            text: "Switch Audio Track",
+            click: (player) => {
+              this.switchAudioTrack(player);
             },
           },
         ],
@@ -442,6 +448,37 @@ export default {
         .catch((err) => {
           dp.notice(`ASS subtitle load failed: ${err}`, 2000, 0.8);
         });
+    },
+
+    switchAudioTrack(player) {
+      if (!player.video.audioTracks) {
+        player.notice("No audio track available", 2000, 0.8);
+        return;
+      }
+      let tracks = player.video.audioTracks;
+      if (tracks.length === 1) {
+        player.notice("Only one audio track available", 2000, 0.8);
+        return;
+      }
+      for (let i = 0; i < tracks.length; i++) {
+        console.log(
+          `Current Audio Track ${i}: ${tracks[i].language}`,
+          tracks[i]
+        );
+        if (tracks[i].enabled) {
+          var current = i;
+          break;
+        }
+      }
+      const next = (current + 1) % tracks.length;
+      console.log(
+        `Switching to Audio Track ${next}: ${tracks[next].language}`,
+        tracks[next]
+      );
+      tracks[next].enabled = true;
+      tracks[current].enabled = false;
+      const msgSwitch = `Switched to Audio Track ${next}: ${tracks[next].language}(${tracks[next].label})`;
+      player.notice(msgSwitch, 2000, 0.8);
     },
 
     initSocket() {
