@@ -1,5 +1,7 @@
 # vplayer
 
+Multiplayer synchronize video player with file browser and ASS subtitle support.
+
 ### build
 ```
 make build
