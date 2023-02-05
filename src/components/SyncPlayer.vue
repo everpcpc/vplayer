@@ -610,13 +610,4 @@ export default {
     z-index: 1;
   }
 }
-.dplayer {
-  > .dplayer-video-wrap {
-    > video {
-      height: auto;
-      width: 100%;
-      object-fit: cover;
-    }
-  }
-}
 </style>
