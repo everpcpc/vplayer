@@ -220,7 +220,8 @@ export default {
   },
 
   mounted() {
-    console.log("HLS support:", Hls.isSupported());
+    // console.log("HLS support:", Hls.isSupported());
+    window.addEventListener("resize", this.tryResizeASS);
   },
 
   computed: {
@@ -247,6 +248,12 @@ export default {
         return `${hours}h:${minutes}m:${seconds}s`;
       } else {
         return `${minutes}m:${seconds}s`;
+      }
+    },
+
+    tryResizeASS() {
+      if (this.ass) {
+        this.ass.resize();
       }
     },
 
@@ -415,16 +422,14 @@ export default {
 
     loadASS(dp, subtitle) {
       const video = document.getElementsByClassName("dplayer-video")[0];
+      const container = document.getElementsByClassName("dplayer-bezel")[0];
       fetch(subtitle)
         .then((res) => res.text())
         .then((text) => {
           const ass = new ASS(text, video, {
-            container: document.getElementsByClassName("dplayer-video-wrap")[0],
+            container: container,
           });
-          dp.on("resize", (event) => {
-            console.log("dp resize: ", event);
-            ass.resize();
-          });
+          console.log("ASS subtitle loaded:", ass.info);
           dp.on("subtitle_show", () => {
             ass.resize();
             ass.show();
@@ -599,6 +604,12 @@ export default {
 </script>
 
 <style lang="scss">
+.dplayer-video-wrap {
+  > .ASS-container {
+    position: absolute;
+    z-index: 1;
+  }
+}
 .dplayer {
   > .dplayer-video-wrap {
     > video {
