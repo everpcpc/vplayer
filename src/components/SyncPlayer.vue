@@ -461,20 +461,12 @@ export default {
         return;
       }
       for (let i = 0; i < tracks.length; i++) {
-        console.log(
-          `Current Audio Track ${i}: ${tracks[i].language}`,
-          tracks[i]
-        );
         if (tracks[i].enabled) {
           var current = i;
           break;
         }
       }
       const next = (current + 1) % tracks.length;
-      console.log(
-        `Switching to Audio Track ${next}: ${tracks[next].language}`,
-        tracks[next]
-      );
       tracks[next].enabled = true;
       tracks[current].enabled = false;
       const msgSwitch = `Switched to Audio Track ${next}: ${tracks[next].language}(${tracks[next].label})`;
