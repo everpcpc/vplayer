@@ -636,7 +636,6 @@ export default {
 .dplayer-video-wrap {
   > .ASS-container {
     position: absolute;
-    z-index: 1;
   }
 }
 </style>
