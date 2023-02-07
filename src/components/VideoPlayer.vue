@@ -106,7 +106,6 @@
       </v-card>
     </v-dialog>
 
-    <div id="ASS-subtitle"></div>
     <video ref="videoPlayer" class="video-js"></video>
 
     <v-card-actions>
@@ -376,6 +375,15 @@ export default {
       if (subtitle) {
         if (subtitle.endsWith(".ass")) {
           this.loadASS(subtitle);
+          this.player.addRemoteTextTrack(
+            {
+              src: "",
+              kind: "subtitles",
+              label: "ASS",
+              default: true,
+            },
+            false
+          );
         } else if (subtitle.endsWith(".vtt")) {
           console.log("VTT subtitle loaded:", subtitle);
           this.player.addRemoteTextTrack(
@@ -395,8 +403,16 @@ export default {
     },
 
     loadASS(subtitle) {
+      // clear old container
+      let containers = document.getElementsByClassName("vjs-text-track-ass");
+      for (let old of containers) {
+        old.remove();
+      }
+
+      let container = document.createElement("div");
+      container.classList.add("vjs-text-track-ass");
       const video = document.getElementsByClassName("vjs-tech")[0];
-      const container = document.getElementById("ASS-subtitle");
+      video.after(container);
       fetch(subtitle)
         .then((res) => res.text())
         .then((text) => {
@@ -516,10 +532,11 @@ export default {
 </script>
 
 <style lang="scss">
-.v-card {
-  > .ASS-container {
+.video-js {
+  > .vjs-text-track-ass {
     position: absolute;
-    z-index: 1;
+    top: 0;
+    left: 0;
     pointer-events: none;
   }
 }
