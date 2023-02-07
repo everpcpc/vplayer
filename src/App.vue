@@ -25,7 +25,7 @@
             </v-card>
           </v-col>
           <v-col v-else cols="12">
-            <DPlayer :uid="uid" :username="username" />
+            <VideoPlayer :uid="uid" :username="username" />
           </v-col>
         </v-row>
       </v-container>
@@ -34,13 +34,13 @@
 </template>
 
 <script>
-import DPlayer from "./components/DPlayer";
+import VideoPlayer from "./components/VideoPlayer";
 
 export default {
   name: "App",
 
   components: {
-    DPlayer,
+    VideoPlayer,
   },
 
   data: () => ({

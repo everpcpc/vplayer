@@ -106,7 +106,8 @@
       </v-card>
     </v-dialog>
 
-    <div id="dplayer"></div>
+    <video ref="videoPlayer" class="video-js"></video>
+
     <v-card-actions>
       <v-btn
         color="primary"
@@ -145,10 +146,9 @@
 </template>
 
 <script>
-import ASS from "assjs";
-import Hls from "hls.js";
-import DPlayer from "dplayer";
+import videojs from "video.js";
 import { io } from "socket.io-client";
+import "video.js/dist/video-js.css";
 const path = require("path");
 
 export default {
@@ -156,7 +156,7 @@ export default {
   data() {
     return {
       socket: null,
-      dp: null,
+      player: null,
       ass: null,
       heartbeat: null,
       currentVideo: "",
@@ -180,8 +180,6 @@ export default {
   },
 
   mounted() {
-    // console.log("HLS support:", Hls.isSupported());
-    window.addEventListener("resize", this.tryResizeASS);
     this.initSocket();
   },
 
@@ -205,18 +203,12 @@ export default {
       }
     },
 
-    tryResizeASS() {
-      if (this.ass) {
-        this.ass.resize();
-      }
-    },
-
     playURL(url, subtitle) {
       this.playDialog = false;
       this.checkSwitchVideo(url, subtitle);
       this.sendSwitch(url, subtitle);
       this.$nextTick(() => {
-        this.dp.play();
+        this.player.play();
       });
     },
 
@@ -230,7 +222,7 @@ export default {
       this.checkSwitchVideo(url, subtitle);
       this.sendSwitch(url, subtitle);
       this.$nextTick(() => {
-        this.dp.play();
+        this.player.play();
       });
     },
 
@@ -239,8 +231,8 @@ export default {
         return;
       }
 
-      if (this.dp) {
-        if (this.dp.video.currentSrc === url) {
+      if (this.player) {
+        if (this.player.currentSrc === url) {
           return;
         }
         if (this.heartbeat) {
@@ -249,7 +241,7 @@ export default {
         if (this.ass) {
           this.ass.destroy();
         }
-        this.dp.destroy();
+        this.player.dispose();
       }
 
       this.currentVideo = decodeURI(url.substring(url.lastIndexOf("/") + 1));
@@ -261,97 +253,53 @@ export default {
 
     playVideo(url, subtitle) {
       console.log("Now playing:", url, subtitle);
-      let subtitleConfig = null;
-      let loadASS = false;
-      if (subtitle) {
-        if (subtitle.endsWith(".ass")) {
-          loadASS = true;
-          subtitleConfig = {
-            url: subtitle,
-            type: "ass",
-          };
-        } else if (subtitle.endsWith(".vtt")) {
-          subtitleConfig = {
-            url: subtitle,
-            type: "webvtt",
-            fontSize: "20px",
-            bottom: "2px",
-          };
+      let player = videojs(
+        this.$refs.videoPlayer,
+        {
+          autoplay: true,
+          controls: true,
+          fluid: true,
+          responsive: true,
+          sources: [
+            {
+              src: url,
+              type: "video/mp4",
+            },
+          ],
+        },
+        () => {
+          // player ready
         }
-      }
-      let video = null;
-      if (url.endsWith(".m3u8")) {
-        video = {
-          url: url,
-          type: "vueHls",
-          customType: {
-            vueHls: function (video, player) {
-              const hls = new Hls();
-              hls.loadSource(video.src);
-              hls.attachMedia(video);
-              player.notice("playing HLS", 2000, 0.8);
-            },
-          },
-        };
-      } else {
-        video = {
-          url: url,
-          type: "auto",
-        };
-      }
-      let dp = new DPlayer({
-        container: document.getElementById("dplayer"),
-        screenshot: true,
-        video: video,
-        subtitle: subtitleConfig,
-        autoplay: false,
-        airplay: true,
-        preload: "auto",
-        contextmenu: [
-          {
-            text: "Force Sync Others",
-            click: (player) => {
-              this.sendControl("sync");
-              player.notice("synced", 2000, 0.8);
-            },
-          },
-          {
-            text: "Switch Audio Track",
-            click: (player) => {
-              this.switchAudioTrack(player);
-            },
-          },
-        ],
-      });
+      );
 
       this.heartbeat = setInterval(() => {
-        if (dp.video.currentTime > 0) {
+        if (player.currentTime() > 0) {
           this.sendControl("heartbeat");
         }
       }, 2000);
 
-      dp.on("play", () => {
+      player.on("play", () => {
         if (this.ignoreEvents.play > 0) {
           this.ignoreEvents.play--;
           return;
         }
         this.sendControl("play");
       });
-      dp.on("pause", () => {
+      player.on("pause", () => {
         if (this.ignoreEvents.pause > 0) {
           this.ignoreEvents.pause--;
           return;
         }
         this.sendControl("pause");
       });
-      dp.on("seeked", () => {
+      player.on("seeked", () => {
         if (this.ignoreEvents.seek > 0) {
           this.ignoreEvents.seek--;
           return;
         }
         this.sendControl("seek");
       });
-      dp.on("ratechange", () => {
+      player.on("ratechange", () => {
         if (this.ignoreEvents.ratechange > 0) {
           this.ignoreEvents.ratechange--;
           return;
@@ -359,59 +307,7 @@ export default {
         this.sendControl("ratechange");
       });
 
-      this.dp = dp;
-      this.$nextTick(() => {
-        if (loadASS) {
-          this.loadASS(dp, subtitle);
-        }
-      });
-    },
-
-    loadASS(dp, subtitle) {
-      const video = document.getElementsByClassName("dplayer-video")[0];
-      const container = document.getElementsByClassName("dplayer-bezel")[0];
-      fetch(subtitle)
-        .then((res) => res.text())
-        .then((text) => {
-          const ass = new ASS(text, video, {
-            container: container,
-          });
-          console.log("ASS subtitle loaded:", ass.info);
-          dp.on("subtitle_show", () => {
-            ass.resize();
-            ass.show();
-          });
-          dp.on("subtitle_hide", () => {
-            ass.hide();
-          });
-          this.ass = ass;
-        })
-        .catch((err) => {
-          dp.notice(`ASS subtitle load failed: ${err}`, 2000, 0.8);
-        });
-    },
-
-    switchAudioTrack(player) {
-      if (!player.video.audioTracks) {
-        player.notice("No audio track available", 2000, 0.8);
-        return;
-      }
-      let tracks = player.video.audioTracks;
-      if (tracks.length === 1) {
-        player.notice("Only one audio track available", 2000, 0.8);
-        return;
-      }
-      for (let i = 0; i < tracks.length; i++) {
-        if (tracks[i].enabled) {
-          var current = i;
-          break;
-        }
-      }
-      const next = (current + 1) % tracks.length;
-      tracks[next].enabled = true;
-      tracks[current].enabled = false;
-      const msgSwitch = `Switched to Audio Track ${next}: ${tracks[next].language}(${tracks[next].label})`;
-      player.notice(msgSwitch, 2000, 0.8);
+      this.player = player;
     },
 
     initSocket() {
@@ -437,15 +333,15 @@ export default {
           this.$nextTick(() => {
             if (!video.paused) {
               this.ignoreEvents.play++;
-              this.dp.play();
+              this.player.play();
             }
             if (video.progress) {
               this.ignoreEvents.seek++;
-              this.dp.seek(video.progress);
+              this.player.currentTime(video.progress);
             }
             if (video.speed) {
               this.ignoreEvents.ratechange++;
-              this.dp.speed(video.speed);
+              this.player.playbackRate(video.speed);
             }
           });
         }
@@ -459,7 +355,7 @@ export default {
         if (user !== this.uid) {
           this.clients = this.clients.filter((e) => e.user !== user);
           this.ignoreEvents.pause++;
-          this.dp.pause();
+          this.player.pause();
         }
       });
     },
@@ -503,36 +399,36 @@ export default {
         switch (event.action) {
           case "play":
             this.ignoreEvents.seek++;
-            this.dp.seek(event.progress + 0.2); // +0.2s for network delay
+            this.player.currentTime(event.progress + 0.2); // +0.2s for network delay
             this.ignoreEvents.play++;
-            this.dp.play();
+            this.player.play();
             break;
           case "pause":
             this.ignoreEvents.seek++;
-            this.dp.seek(event.progress);
+            this.player.currentTime(event.progress);
             this.ignoreEvents.pause++;
-            this.dp.pause();
+            this.player.pause();
             break;
           case "seek":
             this.ignoreEvents.seek++;
-            this.dp.seek(event.progress);
+            this.player.currentTime(event.progress);
             break;
           case "ratechange":
             this.ignoreEvents.ratechange++;
-            this.dp.speed(event.speed);
+            this.player.playbackRate(event.speed);
             break;
           case "sync":
             if (event.paused) {
               this.ignoreEvents.pause++;
-              this.dp.pause();
+              this.player.pause();
             } else {
               this.ignoreEvents.play++;
-              this.dp.play();
+              this.player.play();
             }
             this.ignoreEvents.seek++;
-            this.dp.seek(event.progress);
+            this.player.currentTime(event.progress);
             this.ignoreEvents.ratechange++;
-            this.dp.speed(event.speed);
+            this.player.playbackRate(event.speed);
             break;
         }
       });
@@ -550,33 +446,22 @@ export default {
     },
 
     sendControl(action) {
-      if (!this.dp) {
+      if (!this.player) {
         return;
       }
       let data = {
         user: this.uid,
         name: this.username,
         action: action,
-        speed: this.dp.video.playbackRate,
-        progress: this.dp.video.currentTime,
-        src: this.dp.video.currentSrc,
+        speed: this.player.playbackRate(),
+        progress: this.player.currentTime(),
+        src: this.player.currentSrc,
         subtitle: null,
-        paused: this.dp.video.paused,
+        paused: this.player.paused,
         timestamp: Date.now(),
       };
-      if (this.dp.subtitle) {
-        data.subtitle = this.dp.subtitle.url;
-      }
       this.socket.emit("video", JSON.stringify(data));
     },
   },
 };
 </script>
-
-<style lang="scss">
-.dplayer-video-wrap {
-  > .ASS-container {
-    position: absolute;
-  }
-}
-</style>
