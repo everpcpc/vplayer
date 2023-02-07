@@ -106,6 +106,7 @@
       </v-card>
     </v-dialog>
 
+    <div id="ASS-subtitle"></div>
     <video ref="videoPlayer" class="video-js"></video>
 
     <v-card-actions>
@@ -146,6 +147,7 @@
 </template>
 
 <script>
+import ASS from "assjs";
 import videojs from "video.js";
 import { io } from "socket.io-client";
 import "video.js/dist/video-js.css";
@@ -182,6 +184,7 @@ export default {
   mounted() {
     this.initPlayer();
     this.initSocket();
+    window.addEventListener("resize", this.tryResizeASS);
   },
 
   computed: {
@@ -249,9 +252,17 @@ export default {
           fluid: true,
           responsive: true,
           sources: [],
+          html5: { nativeTextTracks: false },
+          textTrackSettings: true,
         },
         () => {
-          // player ready
+          let settings = player.textTrackSettings;
+          settings.setValues({
+            backgroundColor: "#000",
+            backgroundOpacity: "0",
+            edgeStyle: "uniform",
+          });
+          settings.updateDisplay();
         }
       );
 
@@ -291,6 +302,12 @@ export default {
       });
 
       this.player = player;
+    },
+
+    tryResizeASS() {
+      if (this.ass) {
+        this.ass.resize();
+      }
     },
 
     duration(t) {
@@ -356,6 +373,42 @@ export default {
         src: url,
         type: "video/mp4",
       });
+      if (subtitle) {
+        if (subtitle.endsWith(".ass")) {
+          this.loadASS(subtitle);
+        } else if (subtitle.endsWith(".vtt")) {
+          console.log("VTT subtitle loaded:", subtitle);
+          this.player.addRemoteTextTrack(
+            {
+              src: subtitle,
+              kind: "subtitles",
+              label: "VTT",
+              default: true,
+            },
+            false
+          );
+        }
+      }
+      this.$nextTick(() => {
+        this.tryResizeASS();
+      });
+    },
+
+    loadASS(subtitle) {
+      const video = document.getElementsByClassName("vjs-tech")[0];
+      const container = document.getElementById("ASS-subtitle");
+      fetch(subtitle)
+        .then((res) => res.text())
+        .then((text) => {
+          const ass = new ASS(text, video, {
+            container: container,
+          });
+          console.log("ASS subtitle loaded:", ass.info);
+          this.ass = ass;
+        })
+        .catch((err) => {
+          console.log(`ASS subtitle load failed: ${err}`);
+        });
     },
 
     browse() {
@@ -453,8 +506,6 @@ export default {
         action: action,
         speed: this.player.playbackRate(),
         progress: this.player.currentTime(),
-        src: this.player.currentSrc,
-        subtitle: null,
         paused: this.player.paused,
         timestamp: Date.now(),
       };
@@ -463,3 +514,13 @@ export default {
   },
 };
 </script>
+
+<style lang="scss">
+.v-card {
+  > .ASS-container {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+  }
+}
+</style>
