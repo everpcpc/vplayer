@@ -24,7 +24,7 @@
               </v-card-actions>
             </v-card>
           </v-col>
-          <SyncPlayer v-else :uid="uid" :username="username" />
+          <DPlayer v-else :uid="uid" :username="username" />
         </v-row>
       </v-container>
     </v-main>
@@ -32,13 +32,13 @@
 </template>
 
 <script>
-import SyncPlayer from "./components/SyncPlayer";
+import DPlayer from "./components/DPlayer";
 
 export default {
   name: "App",
 
   components: {
-    SyncPlayer,
+    DPlayer,
   },
 
   data: () => ({
