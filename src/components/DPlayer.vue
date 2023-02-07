@@ -1,5 +1,5 @@
 <template>
-  <v-col cols="12">
+  <div>
     <v-dialog
       v-model="browseDialog"
       fullscreen
@@ -143,7 +143,7 @@
         </v-chip>
       </v-card-actions>
     </v-card>
-  </v-col>
+  </div>
 </template>
 
 <script>

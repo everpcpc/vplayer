@@ -24,7 +24,9 @@
               </v-card-text>
             </v-card>
           </v-col>
-          <DPlayer v-else :uid="uid" :username="username" />
+          <v-col v-else cols="12">
+            <DPlayer :uid="uid" :username="username" />
+          </v-col>
         </v-row>
       </v-container>
     </v-main>
