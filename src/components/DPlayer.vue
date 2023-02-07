@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-card tile>
     <v-dialog
       v-model="browseDialog"
       fullscreen
@@ -107,43 +107,41 @@
     </v-dialog>
 
     <div id="dplayer"></div>
-    <v-card tile>
-      <v-card-actions>
-        <v-btn
-          color="primary"
-          fab
-          x-small
-          outlined
-          dark
-          @click="playDialog = true"
-        >
-          <v-icon> mdi-link-plus </v-icon>
-        </v-btn>
-        <v-btn color="primary" fab x-small outlined dark @click="browse">
-          <v-icon> mdi-folder-plus </v-icon>
-        </v-btn>
-        <v-chip color="grey" class="mx-2" label outlined>
-          <v-icon left> mdi-play-circle </v-icon>
-          <v-icon v-if="currentSubtitle" left> mdi-subtitles </v-icon>
-          {{ currentVideo }}
-        </v-chip>
-        <v-chip
-          v-for="client in otherClients"
-          :key="client.user"
-          :color="client.paused ? 'grey' : 'success'"
-          :text-color="client.paused ? 'grey' : 'success'"
-          label
-          outlined
-        >
-          <v-avatar left> {{ client.speed }}x </v-avatar>
-          <v-icon left>
-            {{ client.paused ? "mdi-pause" : "mdi-play" }}
-          </v-icon>
-          {{ client.name }} - {{ duration(client.progress) }}
-        </v-chip>
-      </v-card-actions>
-    </v-card>
-  </div>
+    <v-card-actions>
+      <v-btn
+        color="primary"
+        fab
+        x-small
+        outlined
+        dark
+        @click="playDialog = true"
+      >
+        <v-icon> mdi-link-plus </v-icon>
+      </v-btn>
+      <v-btn color="primary" fab x-small outlined dark @click="browse">
+        <v-icon> mdi-folder-plus </v-icon>
+      </v-btn>
+      <v-chip color="grey" class="mx-2" label outlined>
+        <v-icon left> mdi-play-circle </v-icon>
+        <v-icon v-if="currentSubtitle" left> mdi-subtitles </v-icon>
+        {{ currentVideo }}
+      </v-chip>
+      <v-chip
+        v-for="client in otherClients"
+        :key="client.user"
+        :color="client.paused ? 'grey' : 'success'"
+        :text-color="client.paused ? 'grey' : 'success'"
+        label
+        outlined
+      >
+        <v-avatar left> {{ client.speed }}x </v-avatar>
+        <v-icon left>
+          {{ client.paused ? "mdi-pause" : "mdi-play" }}
+        </v-icon>
+        {{ client.name }} - {{ duration(client.progress) }}
+      </v-chip>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script>
