@@ -1,173 +1,149 @@
 <template>
-  <v-container>
-    <v-row align="center" justify="center">
-      <v-col cols="12" lg="6" md="6" v-if="!showPlayer">
-        <v-card>
-          <v-card-text>
-            <v-text-field
-              v-model="username"
-              label="username"
-              :rules="[() => !!username || 'username is required']"
-              solo
-            ></v-text-field>
-          </v-card-text>
-          <v-card-actions class="justify-center">
-            <v-btn color="primary" :disabled="!username" @click="startPlaying">
-              join
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
+  <v-col cols="12">
+    <v-dialog
+      v-model="browseDialog"
+      fullscreen
+      hide-overlay
+      transition="dialog-bottom-transition"
+    >
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-btn icon dark @click="refreshFiles">
+            <v-icon>mdi-sync</v-icon>
+          </v-btn>
+          <v-btn icon dark @click="toggleTreeview">
+            <v-icon>{{
+              expanded ? "mdi-arrow-collapse-all" : "mdi-arrow-expand-all"
+            }}</v-icon>
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-text-field
+            v-model="search"
+            label="Search Video"
+            dark
+            flat
+            solo-inverted
+            hide-details
+            clearable
+            clear-icon="mdi-close-circle-outline"
+            @input="searchTreeview"
+          ></v-text-field>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click="browseDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
 
-      <v-col cols="12" v-else>
-        <v-dialog
-          v-model="browseDialog"
-          fullscreen
-          hide-overlay
-          transition="dialog-bottom-transition"
-        >
-          <v-card>
-            <v-toolbar dark color="primary">
-              <v-btn icon dark @click="refreshFiles">
-                <v-icon>mdi-sync</v-icon>
-              </v-btn>
-              <v-btn icon dark @click="toggleTreeview">
-                <v-icon>{{
-                  expanded ? "mdi-arrow-collapse-all" : "mdi-arrow-expand-all"
-                }}</v-icon>
-              </v-btn>
-              <v-spacer></v-spacer>
-              <v-text-field
-                v-model="search"
-                label="Search Video"
-                dark
-                flat
-                solo-inverted
-                hide-details
-                clearable
-                clear-icon="mdi-close-circle-outline"
-                @input="searchTreeview"
-              ></v-text-field>
-              <v-spacer></v-spacer>
-              <v-btn icon dark @click="browseDialog = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-toolbar>
-
-            <v-card-text class="my-2" align="center" v-if="isLoading">
-              <v-progress-circular
-                :size="50"
-                color="primary"
-                indeterminate
-              ></v-progress-circular>
-            </v-card-text>
-            <v-card-text class="my-2" v-else>
-              <v-treeview
-                dense
-                open-on-click
-                ref="browseTree"
-                :items="files"
-                :open-all="expanded"
-                item-key="name"
-                :search="search"
-              >
-                <template v-slot:prepend="{ item, open }">
-                  <v-icon v-if="item.children != null">
-                    {{ open ? "mdi-folder-open" : "mdi-folder" }}
-                  </v-icon>
-                  <v-hover v-else v-slot="{ hover }">
-                    <v-icon
-                      color="success"
-                      @click="hover ? playItem(item) : undefined"
-                    >
-                      {{
-                        hover
-                          ? "mdi-play-circle-outline"
-                          : "mdi-movie-open-play"
-                      }}
-                    </v-icon>
-                  </v-hover>
-                  <v-icon v-if="item.subtitle"> mdi-subtitles </v-icon>
-                </template>
-              </v-treeview>
-            </v-card-text>
-          </v-card>
-        </v-dialog>
-
-        <v-dialog v-model="playDialog" hide-overlay max-width="640px">
-          <v-card>
-            <v-toolbar dark color="primary">
-              <v-toolbar-title>Play Video with URL</v-toolbar-title>
-              <v-spacer></v-spacer>
-              <v-btn icon dark @click="playDialog = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-toolbar>
-            <v-card-text class="my-2">
-              <v-text-field
-                v-model="videoURL"
-                label="Video URL"
-                :rules="[() => !!videoURL || 'url is required']"
-                solo
-              ></v-text-field>
-              <v-text-field
-                v-model="subtitleURL"
-                label="Subtitle URL"
-                solo
-              ></v-text-field>
-            </v-card-text>
-            <v-card-actions class="justify-center">
-              <v-btn
-                color="primary"
-                :disabled="!videoURL"
-                @click="playURL(videoURL, subtitleURL)"
-              >
-                play
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-
-        <div id="dplayer"></div>
-        <v-card tile>
-          <v-card-actions>
-            <v-btn
-              color="primary"
-              fab
-              x-small
-              outlined
-              dark
-              @click="playDialog = true"
-            >
-              <v-icon> mdi-link-plus </v-icon>
-            </v-btn>
-            <v-btn color="primary" fab x-small outlined dark @click="browse">
-              <v-icon> mdi-folder-plus </v-icon>
-            </v-btn>
-            <v-chip color="grey" class="mx-2" label outlined>
-              <v-icon left> mdi-play-circle </v-icon>
-              <v-icon v-if="currentSubtitle" left> mdi-subtitles </v-icon>
-              {{ currentVideo }}
-            </v-chip>
-            <v-chip
-              v-for="client in otherClients"
-              :key="client.user"
-              :color="client.paused ? 'grey' : 'success'"
-              :text-color="client.paused ? 'grey' : 'success'"
-              label
-              outlined
-            >
-              <v-avatar left> {{ client.speed }}x </v-avatar>
-              <v-icon left>
-                {{ client.paused ? "mdi-pause" : "mdi-play" }}
+        <v-card-text class="my-2" align="center" v-if="isLoading">
+          <v-progress-circular
+            :size="50"
+            color="primary"
+            indeterminate
+          ></v-progress-circular>
+        </v-card-text>
+        <v-card-text class="my-2" v-else>
+          <v-treeview
+            dense
+            open-on-click
+            ref="browseTree"
+            :items="files"
+            :open-all="expanded"
+            item-key="name"
+            :search="search"
+          >
+            <template v-slot:prepend="{ item, open }">
+              <v-icon v-if="item.children != null">
+                {{ open ? "mdi-folder-open" : "mdi-folder" }}
               </v-icon>
-              {{ client.name }} - {{ duration(client.progress) }}
-            </v-chip>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+              <v-hover v-else v-slot="{ hover }">
+                <v-icon
+                  color="success"
+                  @click="hover ? playItem(item) : undefined"
+                >
+                  {{
+                    hover ? "mdi-play-circle-outline" : "mdi-movie-open-play"
+                  }}
+                </v-icon>
+              </v-hover>
+              <v-icon v-if="item.subtitle"> mdi-subtitles </v-icon>
+            </template>
+          </v-treeview>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="playDialog" hide-overlay max-width="640px">
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-toolbar-title>Play Video with URL</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click="playDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text class="my-2">
+          <v-text-field
+            v-model="videoURL"
+            label="Video URL"
+            :rules="[() => !!videoURL || 'url is required']"
+            solo
+          ></v-text-field>
+          <v-text-field
+            v-model="subtitleURL"
+            label="Subtitle URL"
+            solo
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions class="justify-center">
+          <v-btn
+            color="primary"
+            :disabled="!videoURL"
+            @click="playURL(videoURL, subtitleURL)"
+          >
+            play
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <div id="dplayer"></div>
+    <v-card tile>
+      <v-card-actions>
+        <v-btn
+          color="primary"
+          fab
+          x-small
+          outlined
+          dark
+          @click="playDialog = true"
+        >
+          <v-icon> mdi-link-plus </v-icon>
+        </v-btn>
+        <v-btn color="primary" fab x-small outlined dark @click="browse">
+          <v-icon> mdi-folder-plus </v-icon>
+        </v-btn>
+        <v-chip color="grey" class="mx-2" label outlined>
+          <v-icon left> mdi-play-circle </v-icon>
+          <v-icon v-if="currentSubtitle" left> mdi-subtitles </v-icon>
+          {{ currentVideo }}
+        </v-chip>
+        <v-chip
+          v-for="client in otherClients"
+          :key="client.user"
+          :color="client.paused ? 'grey' : 'success'"
+          :text-color="client.paused ? 'grey' : 'success'"
+          label
+          outlined
+        >
+          <v-avatar left> {{ client.speed }}x </v-avatar>
+          <v-icon left>
+            {{ client.paused ? "mdi-pause" : "mdi-play" }}
+          </v-icon>
+          {{ client.name }} - {{ duration(client.progress) }}
+        </v-chip>
+      </v-card-actions>
+    </v-card>
+  </v-col>
 </template>
 
 <script>
@@ -178,10 +154,9 @@ import { io } from "socket.io-client";
 const path = require("path");
 
 export default {
+  props: ["username", "uid"],
   data() {
     return {
-      username: "",
-      uid: "",
       showPlayer: false,
       socket: null,
       dp: null,
@@ -215,13 +190,10 @@ export default {
     };
   },
 
-  created() {
-    this.username = localStorage.username || "";
-  },
-
   mounted() {
     // console.log("HLS support:", Hls.isSupported());
     window.addEventListener("resize", this.tryResizeASS);
+    this.initSocket();
   },
 
   computed: {
@@ -231,13 +203,6 @@ export default {
   },
 
   methods: {
-    randomString(length) {
-      let str = "";
-      for (let i = 0; i < length; i++) {
-        str += Math.random().toString(36).substring(2);
-      }
-      return str.substring(0, length);
-    },
     duration(t) {
       if (!t) return "0s";
       const hours = Math.floor(t / 3600);
@@ -255,19 +220,6 @@ export default {
       if (this.ass) {
         this.ass.resize();
       }
-    },
-
-    startPlaying() {
-      if (this.showPlayer) {
-        alert("player already initialized");
-        return;
-      }
-      this.uid = this.randomString(10);
-      localStorage.username = this.username;
-      this.showPlayer = true;
-      this.$nextTick(() => {
-        this.initSocket();
-      });
     },
 
     playURL(url, subtitle) {
