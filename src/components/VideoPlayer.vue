@@ -180,6 +180,7 @@ export default {
   },
 
   mounted() {
+    this.initPlayer();
     this.initSocket();
   },
 
@@ -190,126 +191,6 @@ export default {
   },
 
   methods: {
-    duration(t) {
-      if (!t) return "0s";
-      const hours = Math.floor(t / 3600);
-      t = t - hours * 3600;
-      const minutes = Math.floor(t / 60);
-      const seconds = Math.floor(t - minutes * 60);
-      if (hours) {
-        return `${hours}h:${minutes}m:${seconds}s`;
-      } else {
-        return `${minutes}m:${seconds}s`;
-      }
-    },
-
-    playURL(url, subtitle) {
-      this.playDialog = false;
-      this.checkSwitchVideo(url, subtitle);
-      this.sendSwitch(url, subtitle);
-      this.$nextTick(() => {
-        this.player.play();
-      });
-    },
-
-    playItem(item) {
-      this.browseDialog = false;
-      const url = path.join("/movie", item.path, item.name);
-      let subtitle = null;
-      if (item.subtitle) {
-        subtitle = path.join("/movie", item.path, item.subtitle);
-      }
-      this.checkSwitchVideo(url, subtitle);
-      this.sendSwitch(url, subtitle);
-      this.$nextTick(() => {
-        this.player.play();
-      });
-    },
-
-    checkSwitchVideo(url, subtitle) {
-      if (!url) {
-        return;
-      }
-
-      if (this.player) {
-        if (this.player.currentSrc === url) {
-          return;
-        }
-        if (this.heartbeat) {
-          clearInterval(this.heartbeat);
-        }
-        if (this.ass) {
-          this.ass.destroy();
-        }
-        this.player.dispose();
-      }
-
-      this.currentVideo = decodeURI(url.substring(url.lastIndexOf("/") + 1));
-      this.currentSubtitle = subtitle;
-      this.$nextTick(() => {
-        this.playVideo(url, subtitle);
-      });
-    },
-
-    playVideo(url, subtitle) {
-      console.log("Now playing:", url, subtitle);
-      let player = videojs(
-        this.$refs.videoPlayer,
-        {
-          autoplay: true,
-          controls: true,
-          fluid: true,
-          responsive: true,
-          sources: [
-            {
-              src: url,
-              type: "video/mp4",
-            },
-          ],
-        },
-        () => {
-          // player ready
-        }
-      );
-
-      this.heartbeat = setInterval(() => {
-        if (player.currentTime() > 0) {
-          this.sendControl("heartbeat");
-        }
-      }, 2000);
-
-      player.on("play", () => {
-        if (this.ignoreEvents.play > 0) {
-          this.ignoreEvents.play--;
-          return;
-        }
-        this.sendControl("play");
-      });
-      player.on("pause", () => {
-        if (this.ignoreEvents.pause > 0) {
-          this.ignoreEvents.pause--;
-          return;
-        }
-        this.sendControl("pause");
-      });
-      player.on("seeked", () => {
-        if (this.ignoreEvents.seek > 0) {
-          this.ignoreEvents.seek--;
-          return;
-        }
-        this.sendControl("seek");
-      });
-      player.on("ratechange", () => {
-        if (this.ignoreEvents.ratechange > 0) {
-          this.ignoreEvents.ratechange--;
-          return;
-        }
-        this.sendControl("ratechange");
-      });
-
-      this.player = player;
-    },
-
     initSocket() {
       this.socket = io({
         query: {
@@ -357,6 +238,123 @@ export default {
           this.ignoreEvents.pause++;
           this.player.pause();
         }
+      });
+    },
+    initPlayer() {
+      let player = videojs(
+        this.$refs.videoPlayer,
+        {
+          autoplay: true,
+          controls: true,
+          fluid: true,
+          responsive: true,
+          sources: [],
+        },
+        () => {
+          // player ready
+        }
+      );
+
+      this.heartbeat = setInterval(() => {
+        if (player.currentTime() > 0) {
+          this.sendControl("heartbeat");
+        }
+      }, 2000);
+
+      player.on("play", () => {
+        if (this.ignoreEvents.play > 0) {
+          this.ignoreEvents.play--;
+          return;
+        }
+        this.sendControl("play");
+      });
+      player.on("pause", () => {
+        if (this.ignoreEvents.pause > 0) {
+          this.ignoreEvents.pause--;
+          return;
+        }
+        this.sendControl("pause");
+      });
+      player.on("seeked", () => {
+        if (this.ignoreEvents.seek > 0) {
+          this.ignoreEvents.seek--;
+          return;
+        }
+        this.sendControl("seek");
+      });
+      player.on("ratechange", () => {
+        if (this.ignoreEvents.ratechange > 0) {
+          this.ignoreEvents.ratechange--;
+          return;
+        }
+        this.sendControl("ratechange");
+      });
+
+      this.player = player;
+    },
+
+    duration(t) {
+      if (!t) return "0s";
+      const hours = Math.floor(t / 3600);
+      t = t - hours * 3600;
+      const minutes = Math.floor(t / 60);
+      const seconds = Math.floor(t - minutes * 60);
+      if (hours) {
+        return `${hours}h:${minutes}m:${seconds}s`;
+      } else {
+        return `${minutes}m:${seconds}s`;
+      }
+    },
+
+    playURL(url, subtitle) {
+      this.playDialog = false;
+      this.checkSwitchVideo(url, subtitle);
+      this.sendSwitch(url, subtitle);
+      this.$nextTick(() => {
+        this.player.play();
+      });
+    },
+
+    playItem(item) {
+      this.browseDialog = false;
+      const url = path.join("/movie", item.path, item.name);
+      let subtitle = null;
+      if (item.subtitle) {
+        subtitle = path.join("/movie", item.path, item.subtitle);
+      }
+      this.checkSwitchVideo(url, subtitle);
+      this.sendSwitch(url, subtitle);
+      this.$nextTick(() => {
+        this.player.play();
+      });
+    },
+
+    checkSwitchVideo(url, subtitle) {
+      if (!url) {
+        return;
+      }
+      if (this.player.currentSrc === url) {
+        return;
+      }
+      if (this.heartbeat) {
+        clearInterval(this.heartbeat);
+      }
+      if (this.ass) {
+        this.ass.destroy();
+      }
+
+      this.currentVideo = decodeURI(url.substring(url.lastIndexOf("/") + 1));
+      this.currentSubtitle = subtitle;
+      this.$nextTick(() => {
+        this.playVideo(url, subtitle);
+      });
+    },
+
+    playVideo(url, subtitle) {
+      console.log("Now playing:", url, subtitle);
+      this.player.src({
+        src: url,
+        type: "video/mp4",
       });
     },
 
