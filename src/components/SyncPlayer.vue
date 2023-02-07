@@ -157,11 +157,11 @@
               label
               outlined
             >
+              <v-avatar left> {{ client.speed }}x </v-avatar>
               <v-icon left>
                 {{ client.paused ? "mdi-pause" : "mdi-play" }}
               </v-icon>
               {{ client.name }} - {{ duration(client.progress) }}
-              <v-avatar right> {{ client.speed }}x </v-avatar>
             </v-chip>
           </v-card-actions>
         </v-card>
