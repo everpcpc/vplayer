@@ -12,16 +12,16 @@
                   :rules="[() => !!username || 'username is required']"
                   solo
                 ></v-text-field>
+                <v-card-actions class="justify-center">
+                  <v-btn
+                    color="primary"
+                    :disabled="!username"
+                    @click="startPlaying"
+                  >
+                    join
+                  </v-btn>
+                </v-card-actions>
               </v-card-text>
-              <v-card-actions class="justify-center">
-                <v-btn
-                  color="primary"
-                  :disabled="!username"
-                  @click="startPlaying"
-                >
-                  join
-                </v-btn>
-              </v-card-actions>
             </v-card>
           </v-col>
           <DPlayer v-else :uid="uid" :username="username" />
