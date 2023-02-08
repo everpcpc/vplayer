@@ -360,16 +360,26 @@ export default {
       });
 
       this.dp = dp;
+      if (loadASS) {
+        this.loadASS(dp, subtitle);
+      }
       this.$nextTick(() => {
-        if (loadASS) {
-          this.loadASS(dp, subtitle);
-        }
+        this.tryResizeASS();
       });
     },
 
     loadASS(dp, subtitle) {
       const video = document.getElementsByClassName("dplayer-video")[0];
-      const container = document.getElementsByClassName("dplayer-bezel")[0];
+
+      // clear old container
+      let containers = document.getElementsByClassName("dplayer-ass");
+      for (let old of containers) {
+        old.remove();
+      }
+      let container = document.createElement("div");
+      container.classList.add("dplayer-ass");
+      video.after(container);
+
       fetch(subtitle)
         .then((res) => res.text())
         .then((text) => {
@@ -412,6 +422,8 @@ export default {
       tracks[current].enabled = false;
       const msgSwitch = `Switched to Audio Track ${next}: ${tracks[next].language}(${tracks[next].label})`;
       player.notice(msgSwitch, 2000, 0.8);
+      // rewind 2 seconds for sound track to take effect
+      player.seek(player.video.currentTime - 2);
     },
 
     initSocket() {
@@ -575,8 +587,11 @@ export default {
 
 <style lang="scss">
 .dplayer-video-wrap {
-  > .ASS-container {
+  > .dplayer-ass {
     position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
   }
 }
 </style>
