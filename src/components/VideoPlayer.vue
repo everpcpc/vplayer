@@ -272,6 +272,7 @@ export default {
       }, 2000);
 
       player.on("play", () => {
+        this.tryResizeASS();
         if (this.ignoreEvents.play > 0) {
           this.ignoreEvents.play--;
           return;
