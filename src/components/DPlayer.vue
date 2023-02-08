@@ -364,9 +364,6 @@ export default {
       if (loadASS) {
         this.loadASS(dp, subtitle);
       }
-      this.$nextTick(() => {
-        this.tryResizeASS();
-      });
     },
 
     loadASS(dp, subtitle) {

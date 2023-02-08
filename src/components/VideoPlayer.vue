@@ -397,9 +397,6 @@ export default {
           );
         }
       }
-      this.$nextTick(() => {
-        this.tryResizeASS();
-      });
     },
 
     loadASS(subtitle) {
