@@ -370,12 +370,6 @@ export default {
 
     loadASS(dp, subtitle) {
       const video = document.getElementsByClassName("dplayer-video")[0];
-
-      // clear old container
-      let containers = document.getElementsByClassName("dplayer-ass");
-      for (let old of containers) {
-        old.remove();
-      }
       let container = document.createElement("div");
       container.classList.add("dplayer-ass");
       video.after(container);
