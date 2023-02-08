@@ -248,6 +248,7 @@ export default {
         }
         if (this.ass) {
           this.ass.destroy();
+          this.ass = null;
         }
         this.dp.destroy();
       }
