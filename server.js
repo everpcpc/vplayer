@@ -28,9 +28,9 @@ function getFileTree(base, dirPath = "") {
     let files = fs.readdirSync(path.join(base, dirPath));
     files.forEach(function (file) {
         if (fs.statSync(path.join(base, dirPath, file)).isDirectory()) {
-            let childen = getFileTree(base, path.join(dirPath, file));
-            if (childen.length > 0) {
-                tree.push({ name: file, children: childen });
+            let children = getFileTree(base, path.join(dirPath, file));
+            if (children.length > 0) {
+                tree.push({ name: file, children: children });
             }
         } else {
             let token = file.split('.');
