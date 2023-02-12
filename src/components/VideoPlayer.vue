@@ -150,7 +150,6 @@ import ASS from "assjs";
 import videojs from "video.js";
 import { io } from "socket.io-client";
 import "video.js/dist/video-js.css";
-const path = require("path");
 
 export default {
   props: ["username", "uid"],
@@ -334,10 +333,10 @@ export default {
 
     playItem(item) {
       this.browseDialog = false;
-      const url = path.join("/movie", item.path, item.name);
+      const url = `/movie/${item.path}/${item.name}`;
       let subtitle = null;
       if (item.subtitle) {
-        subtitle = path.join("/movie", item.path, item.subtitle);
+        subtitle = `/movie/${item.path}/${item.subtitle}`;
       }
       this.checkSwitchVideo(url, subtitle);
       this.sendSwitch(url, subtitle);

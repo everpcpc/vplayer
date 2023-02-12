@@ -8,6 +8,9 @@ setup:
 build: setup
 	npm run build
 
+build_production: setup
+	NODE_ENV=production npm run build
+
 dev:
 	npm run serve
 

@@ -149,7 +149,6 @@ import ASS from "assjs";
 import Hls from "hls.js";
 import DPlayer from "dplayer";
 import { io } from "socket.io-client";
-const path = require("path");
 
 export default {
   props: ["username", "uid"],
@@ -222,10 +221,10 @@ export default {
 
     playItem(item) {
       this.browseDialog = false;
-      const url = path.join("/movie", item.path, item.name);
+      const url = `/movie/${item.path}/${item.name}`;
       let subtitle = null;
       if (item.subtitle) {
-        subtitle = path.join("/movie", item.path, item.subtitle);
+        subtitle = `/movie/${item.path}/${item.subtitle}`;
       }
       this.checkSwitchVideo(url, subtitle);
       this.sendSwitch(url, subtitle);
