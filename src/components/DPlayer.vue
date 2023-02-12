@@ -221,10 +221,10 @@ export default {
 
     playItem(item) {
       this.browseDialog = false;
-      const url = `/movie/${item.path}/${item.name}`;
+      const url = `${item.path}/${item.name}`;
       let subtitle = null;
       if (item.subtitle) {
-        subtitle = `/movie/${item.path}/${item.subtitle}`;
+        subtitle = `${item.path}/${item.subtitle}`;
       }
       this.checkSwitchVideo(url, subtitle);
       this.sendSwitch(url, subtitle);

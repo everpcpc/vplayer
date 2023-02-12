@@ -18,6 +18,12 @@ const argv = yargs
         default: '/data/movie',
         description: 'data dir for scanning videos',
     })
+    .option('prefix', {
+        alias: 'x',
+        type: 'string',
+        default: '/movie',
+        description: 'prefix for the url',
+    })
     .help().alias('help', 'h')
     .argv;
 
@@ -54,7 +60,8 @@ function getFileTree(base, dirPath = "") {
         }
     })
     videos.forEach((video) => {
-        tree.push({ name: video.file, path: dirPath, subtitle: subtitles[video.fname] });
+        let urlPath = path.join(argv.prefix, dirPath);
+        tree.push({ name: video.file, path: urlPath, subtitle: subtitles[video.fname] });
     })
     return tree
 }
