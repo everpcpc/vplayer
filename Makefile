@@ -3,16 +3,16 @@ DATA_DIR ?= /data/movie
 default: build
 
 setup:
-	npm install
+	pnpm install
 
 build: setup
-	npm run build
+	pnpm run build
 
 build_production: setup
-	NODE_ENV=production npm run build
+	NODE_ENV=production pnpm run build
 
 dev:
-	npm run serve
+	pnpm run serve
 
 server: setup
 	ncc build server.js -o server
