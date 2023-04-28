@@ -46,6 +46,9 @@ function getFileTree(base, dirPath = "") {
                 case "mp4":
                     videos.push({ file: file, fname: fname, ext: ext });
                     break;
+                case "webm":
+                    videos.push({ file: file, fname: fname, ext: ext });
+                    break;
                 case "ts":
                     videos.push({ file: file, fname: fname, ext: ext });
                     break;

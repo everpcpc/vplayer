@@ -6,16 +6,16 @@ setup:
 	pnpm install
 
 build: setup
-	pnpm run build
+	pnpm build
 
 build_production: setup
-	NODE_ENV=production pnpm run build
+	NODE_ENV=production pnpm build
 
 dev:
-	pnpm run serve
+	pnpm serve
 
 server: setup
-	ncc build server.js -o server
+	pnpm build-server
 
 serve:
 	node server/index.js --data $(DATA_DIR)
