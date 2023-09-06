@@ -129,14 +129,14 @@
       <v-chip
         v-for="client in otherClients"
         :key="client.user"
-        :color="client.paused ? 'grey' : 'success'"
-        :text-color="client.paused ? 'grey' : 'success'"
+        :color="client.playing ? 'success' : 'grey'"
+        :text-color="client.playing ? 'success' : 'grey'"
         label
         outlined
       >
         <v-avatar left> {{ client.speed }}x </v-avatar>
         <v-icon left>
-          {{ client.paused ? "mdi-pause" : "mdi-play" }}
+          {{ client.playing ? "mdi-play" : "mdi-pause" }}
         </v-icon>
         {{ client.name }} - {{ duration(client.progress) }}
       </v-chip>
@@ -439,7 +439,7 @@ export default {
           const video = status.video;
           this.checkSwitchVideo(video.src, video.subtitle);
           this.$nextTick(() => {
-            if (!video.paused) {
+            if (video.playing) {
               this.ignoreEvents.play++;
               this.dp.play();
             }
@@ -526,12 +526,12 @@ export default {
             this.dp.speed(event.speed);
             break;
           case "sync":
-            if (event.paused) {
-              this.ignoreEvents.pause++;
-              this.dp.pause();
-            } else {
+            if (event.playing) {
               this.ignoreEvents.play++;
               this.dp.play();
+            } else {
+              this.ignoreEvents.pause++;
+              this.dp.pause();
             }
             this.ignoreEvents.seek++;
             this.dp.seek(event.progress);
@@ -565,7 +565,7 @@ export default {
         progress: this.dp.video.currentTime,
         src: this.dp.video.currentSrc,
         subtitle: null,
-        paused: this.dp.video.paused,
+        playing: !this.dp.video.paused,
         timestamp: Date.now(),
       };
       if (this.dp.subtitle) {

@@ -92,7 +92,7 @@ io.on('connection', (socket) => {
 
     socket.on('video', (params) => {
         const event = JSON.parse(params);
-        video.paused = event.paused;
+        video.playing = event.playing;
         if (event.progress) {
             video.progress = event.progress;
         }

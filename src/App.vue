@@ -25,7 +25,7 @@
             </v-card>
           </v-col>
           <v-col v-else cols="12">
-            <PlyrPlayer :uid="uid" :username="username" />
+            <DPlayer :uid="uid" :username="username" />
           </v-col>
         </v-row>
       </v-container>
@@ -34,13 +34,13 @@
 </template>
 
 <script>
-import PlyrPlayer from "./components/PlyrPlayer";
+import DPlayer from "./components/DPlayer";
 
 export default {
   name: "App",
 
   components: {
-    PlyrPlayer,
+    DPlayer,
   },
 
   data: () => ({

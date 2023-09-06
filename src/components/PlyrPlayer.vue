@@ -130,14 +130,14 @@
       <v-chip
         v-for="client in otherClients"
         :key="client.user"
-        :color="client.paused ? 'grey' : 'success'"
-        :text-color="client.paused ? 'grey' : 'success'"
+        :color="client.playing ? 'success' : 'grey'"
+        :text-color="client.playing ? 'success' : 'grey'"
         label
         outlined
       >
         <v-avatar left> {{ client.speed }}x </v-avatar>
         <v-icon left>
-          {{ client.paused ? "mdi-pause" : "mdi-play" }}
+          {{ client.playing ? "mdi-play" : "mdi-pause" }}
         </v-icon>
         {{ client.name }} - {{ duration(client.progress) }}
       </v-chip>
@@ -213,10 +213,6 @@ export default {
           const video = status.video;
           this.checkSwitchVideo(video.src, video.subtitle);
           this.$nextTick(() => {
-            if (!video.paused) {
-              this.ignoreEvents.play++;
-              this.player.play();
-            }
             if (video.progress) {
               this.ignoreEvents.seek++;
               this.player.currentTime = video.progress;
@@ -225,6 +221,7 @@ export default {
               this.ignoreEvents.ratechange++;
               this.player.speed = video.speed;
             }
+            this.player.togglePlay(video.playing);
           });
         }
       });
@@ -246,12 +243,6 @@ export default {
         autoplay: true,
         sources: [],
       });
-
-      this.heartbeat = setInterval(() => {
-        if (player.currentTime() > 0) {
-          this.sendControl("heartbeat");
-        }
-      }, 2000);
 
       player.on("play", () => {
         this.tryResizeASS();
@@ -391,6 +382,11 @@ export default {
       }
       this.player.source = vsource;
       this.loadASS(this.currentSubtitle);
+      this.heartbeat = setInterval(() => {
+        if (this.player.currentTime > 0) {
+          this.sendControl("heartbeat");
+        }
+      }, 2000);
     },
 
     loadASS(subtitle) {
@@ -481,12 +477,12 @@ export default {
             this.player.speed = event.speed;
             break;
           case "sync":
-            if (event.paused) {
-              this.ignoreEvents.pause++;
-              this.player.pause();
-            } else {
+            if (event.playing) {
               this.ignoreEvents.play++;
               this.player.play();
+            } else {
+              this.ignoreEvents.pause++;
+              this.player.pause();
             }
             this.ignoreEvents.seek++;
             this.player.currentTime = event.progress;
@@ -518,7 +514,7 @@ export default {
         action: action,
         speed: this.player.speed,
         progress: this.player.currentTime,
-        paused: this.player.paused,
+        playing: this.player.playing,
         timestamp: Date.now(),
       };
       this.socket.emit("video", JSON.stringify(data));
