@@ -282,8 +282,15 @@ export default {
         }
         this.sendControl("ratechange");
       });
+      player.on("captionsdisabled", () => {
+        if (this.ass) {
+          this.ass.hide();
+        }
+      });
       player.on("captionsenabled", () => {
-        this.loadASS(this.currentSubtitle);
+        if (this.ass) {
+          this.ass.show();
+        }
       });
 
       this.player = player;
@@ -383,6 +390,7 @@ export default {
         }
       }
       this.player.source = vsource;
+      this.loadASS(this.currentSubtitle);
     },
 
     loadASS(subtitle) {
@@ -400,7 +408,6 @@ export default {
       let container = document.createElement("div");
       container.classList.add("plyr__text__track__ass");
       const video = document.querySelector(".plyr__video-wrapper video");
-      console.log("video el:", video);
       video.after(container);
       fetch(subtitle)
         .then((res) => res.text())
