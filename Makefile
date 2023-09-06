@@ -1,4 +1,5 @@
 DATA_DIR ?= /data/movie
+DATA_PREFIX ?= /share
 
 default: build
 
@@ -18,4 +19,4 @@ server: setup
 	pnpm build-server
 
 serve:
-	node server/index.js --data $(DATA_DIR)
+	node server/index.js --data $(DATA_DIR) --prefix $(DATA_PREFIX)
