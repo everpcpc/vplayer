@@ -328,7 +328,7 @@ export default {
         if (dp.video.currentTime > 0) {
           this.sendControl("heartbeat");
         }
-      }, 2000);
+      }, 1000);
 
       dp.on("play", () => {
         this.tryResizeASS();
